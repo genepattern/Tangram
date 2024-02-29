@@ -1,0 +1,18 @@
+name: tangram_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - squidpy==1.4.1
+      - jupyterlab==3.6.3
+      - matplotlib==3.7.2
+      - numpy==1.24.3
+      - pandas==2.2.0
+      - scanpy==1.9.8
+      - scipy==1.11.1
+      - scikit-learn==1.3.0
+      - seaborn==0.13.2
+      - tangram-sc==1.0.4
+      - tqdm==4.65.0
