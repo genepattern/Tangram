@@ -8,17 +8,6 @@ LABEL maintainer="Julia Kononova jkononova@ucsd.edu, Omar Halawa ohalawa@ucsd.ed
 
 # Setting up proper environment, see ExampleModule Dockerfile for more info
 # -----------------------------------
-RUN useradd -ms /bin/bash gpuser
-USER gpuser
-WORKDIR /home/gpuser
-
-USER root
-RUN mkdir /Tangram \
-    && chown gpuser /Tangram
-
-USER gpuser
-COPY src/*.py /Tangram/
-COPY src/*.ipynb /Tangram/
 # -----------------------------------
 
 # Ensuring up-to-date pip and importing necessary modules 
@@ -37,3 +26,15 @@ RUN pip install --upgrade pip && \
      
 # Build using "docker build -t <TAG> ."
 # Run using "docker run -it --rm <IMAGE ID> bash"
+
+RUN useradd -ms /bin/bash gpuser
+USER gpuser
+WORKDIR /home/gpuser
+
+USER root
+RUN mkdir /Tangram \
+    && chown gpuser /Tangram
+
+USER gpuser
+COPY src/*.py /Tangram/
+COPY src/*.ipynb /Tangram/

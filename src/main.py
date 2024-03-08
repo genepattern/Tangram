@@ -4,6 +4,12 @@
 import argparse
 from functions import * 
 
+### main function to parse arguments
+## calls from functions.py to run functions
+def main():
+  ## add any parameters as necessary
+  return None
+
 
 
 
