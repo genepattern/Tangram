@@ -8,9 +8,6 @@ from functions import *
 ## calls from functions.py to run functions
 def main():
 
-  # Adding arguments to script for Tangram file inputs, options, & debugging
-  parser = ap.ArgumentParser(description='Tangram')
-
   # File input arguments
   # Spatial data file input (.gct):
   parser.add_argument("--sp", "--spatial", help="spatial data file input"
@@ -55,11 +52,6 @@ def main():
   # Module debug argument, either True or False, False by default
   parser.add_argument("-d", "--debug", help="module debug flag",
                       nargs="?", const=1, default=False, type=int)
-
-  args = parser.parse_args()
-
-  if (args.debug):
-    print("Debugging on.\n")
   
   ## add any parameters as necessary
   return None
@@ -72,3 +64,7 @@ if __name__ == "__main__":
 
   parser = argparse.ArgumentParser()
   args = parser.parse_args()
+
+  if (args.debug):
+    print("Debugging on.\n")
+
