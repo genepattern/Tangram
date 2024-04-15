@@ -45,7 +45,7 @@ def main():
   parser.add_argument("-n", "--number_training_genes", help="number of top differentially expressed genes to"
                     + "use for training", nargs="?", const=1, type=int, default=100)
   
-  # File input for manual training marker gene selection, only considered if use_top_n is false:
+  # File input for manual training marker gene selection for preprocessing step, only considered if use_top_n is false:
   # TODO: decide on necessity of parameter and file format (simple tsv of names?)
   parser.add_argument("--marker_genes_input", help="file input in case of manual training marker gene selection",
                     nargs="?", const=1)
@@ -65,10 +65,18 @@ def main():
   parser.add_argument("--perc", help="tangram range of color-mapping for plots (adjust to remove outliers)",
                       nargs="?", const=1, default=0.02, type=float)
 
+  # TODO: Make educated decision about default # of epochs, current default value set same as tutorial
+  parser.add_argument("--num_epochs", help="Number of iterations for function mapping", type=int, default=500)
+  
+  # TODO: Potentially adjust this so that choices are "cpu" and "cuda", for user friendliness
+  parser.add_argument("--device", help="Device to use (cpu or cuda:0 for GPU)", default="cpu", choices=["cpu", "cuda:0"])
+  
   # File input of genes to plot measured vs predicted for:
   # TODO: decide on file format (simple tsv of names?)
   parser.add_argument("--genes_to_plot", help="file input of genes to plot measured vs predicted for",
                     nargs="?", const=1)
+  # Annotation used when projecting and plotting cell annotations in deconvolution step
+  parser.add_argument("--annotation", help="Annotation parameter for spatial mapping", default="cell_subclass", type = "str")
 
 
   # Developer & verbosity arguments
