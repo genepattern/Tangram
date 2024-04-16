@@ -1,0 +1,51 @@
+[
+    {
+        "name": "Data Inputs",
+        "description": "Required file inputs.",
+        "hidden": false,
+        "parameters": [
+            "single.cell.data.file",
+            "spatial.data.file",
+            "genes.to.plot.data.file"
+        ]
+    },
+    {
+        "name": "Output Filenames",
+        "description": "Filenames for output plots and objects.",
+        "hidden": true,
+        "parameters": [
+            "umap.plot.filename",
+            "spatial.plot.filename",
+            "training.plot.filename",
+            "genes.plot.filename",
+            "auc.plot.filename",
+            "celltype.plot.filename",
+            "predictions.filename"
+        ]
+    },
+    {
+        "name": "Model Training Options",
+        "description": "Options for prediction model training.",
+        "hidden": false,
+        "parameters": [
+            "training.mode",
+            "num.top.de.genes",
+            "training.genes.input"
+        ]
+    },
+    {
+        "name": "Optional Parameters",
+        "description": "Optional algorithmic and cosmetic parameters.",
+        "hidden": true,
+        "parameters": [
+            "spatial.alpha",
+            "umap.point.size",
+            "training.alpha",
+            "alignment.mode",
+            "alignment.cell.density",
+            "annotation.type",
+            "color.mapping.perc",
+            "num.epochs"
+        ]
+    }
+]
