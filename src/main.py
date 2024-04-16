@@ -9,21 +9,36 @@ from functions import *
 def main():
 
   # File input arguments
-
-  # Spatial data file input (.gct):
+  # Spatial data file input (.gct/.h5ad):
   parser.add_argument("--sp", "--spatial", help="spatial data file input"
-                      + " Valid file format(s): .gct")
-  # Single-cell data file input (.gct):
+                      + " Valid file format(s): .gct/.h5ad")
+  # Single-cell data file input (.gct/.h5ad):
   parser.add_argument("--sc", "--scrna", help="single-cell data file input"
-                      + " Valid file format(s): .gct")
+                      + " Valid file format(s): .gct/.h5ad")
+  # GMT file input of genes to plot measured vs predicted for (.gmt):
+  parser.add_argument("--genes_to_plot", help="file input of genes to plot measured vs predicted for"
+                      + " Valid file format(s): .gmt")
 
+  # Output filename arguments
+  # Filenamr for UMAP plot of initial single-cell data
+  parser.add_argument("--umap_plot_filename", help="filename for initial umap plot output")
+  # Filename for plot of initial spatial data 
+  parser.add_argument("--spatial_plot_filename", help="filename for initial spatial plot output")
+  # Filename for training plot
+  parser.add_argument("--training_plot_filename", help="filename for training plot")
+  # Filename for plotted genes
+  parser.add_argument("--genes_plot_filename", help="filename for plotted genes")
+  # Filename for auc plot
+  parser.add_argument("--auc_plot_filename", help="filename for auc plot")
+  # Filename for celltype plot
+  parser.add_argument("--celltype_plot_filename", help="filename for celltype plot")
+  # Filename for anndata object of predictions
+  parser.add_argument("--predictions_filename", help="filename for anndata predictions output")
 
   # Tangram parameter arguments
-  # TODO: remove nargs and const, keeping them now for likely smoother debugging - feel free to change  
-
-  # Classification mode ("test-train" or "loocv"):
-  parser.add_argument("-m", "--classification_mode", help="tangram classification mode (test-train or loocv)",
-                      nargs="?", const=1, default="test-train", choices=["test-train","loocv"])
+  # # Classification mode ("test-train" or "loocv"):
+  # parser.add_argument("-m", "--classification_mode", help="tangram classification mode (test-train or loocv)",
+  #                     nargs="?", const=1, default="test-train", choices=["test-train","loocv"])
   
   # UMAP point size argument, used for one plot (initial umap); integer value:
   parser.add_argument("--umap_point_size", help="umap point size in single-cell initial scanpy plot",
@@ -33,31 +48,33 @@ def main():
   parser.add_argument("--spatial_alpha", help="alpha value in single-cell scanpy spatial plots",
                     nargs="?", const=1, type=float, default=0.7)
   
+  # Boolean value for whether to use top n differentially expressed genes as training genes:
+  parser.add_argument("--training_mode", help="choice for whether to use top n differentially expressed" 
+                    + "genes for training or gmt gene set", nargs="?", const=1, default="Use Top N Genes", 
+                    choices=["Use Top N Genes", "Use GMT File Input"])
+
   # Alpha value for training score plot opacity; float value ranging from 0.0 to 1.0, inclusive:
   parser.add_argument("--training_alpha", help="alpha value in training score plots",
                     nargs="?", const=1, type=float, default=0.5)
-
-  # Boolean value for whether to use top n differentially expressed genes as training genes:
-  parser.add_argument("--use_top_n", help="boolean for whether to use top n differentially expressed" 
-                    + "genes for training", nargs="?", const=1, type=bool, default=True)
   
   # Number of top differentially expressed genes to use as training genes, only considered if use_top_n is true:
   parser.add_argument("-n", "--number_training_genes", help="number of top differentially expressed genes to"
                     + "use for training", nargs="?", const=1, type=int, default=100)
   
-  # File input for manual training marker gene selection for preprocessing step, only considered if use_top_n is false:
-  # TODO: decide on necessity of parameter and file format (simple tsv of names?)
+  # File input for manual training marker gene selection, only considered if use_top_n is false:
   parser.add_argument("--marker_genes_input", help="file input in case of manual training marker gene selection",
                     nargs="?", const=1)
 
-  # Alignment mode argument, accepted values are either "cluster", "cell", or "constrained"; gpu pref if "cell":
+  # Alignment mode argument, accepted values are: "cluster", "cell", or "constrained"; gpu pref if "cell":
   parser.add_argument("--alignment_mode", help="tangram alignment mode (cluster, cell, or constrained)",
                       nargs="?", const=1, default="cluster", choices=["cluster","cell","constrained"])
- 
+  
   # Alignment cell density argument, accepted values are either "rna_count_based" (cell density prop. to number of RNA molecules) 
   # or "uniform" (if spatial voxels at single cell resolution):
   parser.add_argument("--density_prior", help="tangram alignment cell density within each spatial voxel (uniform or rna_count_based)",
                       nargs="?", const=1, default="rna_count_based", choices=["rna_count_based","uniform"])
+  
+  parser.add_argument("--annotation_type", help="annotation type for tangram projection", default="cell_subclass", type=str)
   
   # Color-mapping percent for plots argument, accepted values are floats between 0 and 1:
   # TODO: look into how to potentially obtain a somewhat optimal value of this for users, might be useful to investigate
@@ -67,29 +84,19 @@ def main():
 
   # TODO: Make educated decision about default # of epochs, current default value set same as tutorial
   parser.add_argument("--num_epochs", help="Number of iterations for function mapping", type=int, default=500)
-  
+
   # TODO: Potentially adjust this so that choices are "cpu" and "cuda", for user friendliness
   parser.add_argument("--device", help="Device to use (cpu or cuda:0 for GPU)", default="cpu", choices=["cpu", "cuda:0"])
-  
-  # File input of genes to plot measured vs predicted for:
-  # TODO: decide on file format (simple tsv of names?)
-  parser.add_argument("--genes_to_plot", help="file input of genes to plot measured vs predicted for",
-                    nargs="?", const=1)
-  # Annotation used when projecting and plotting cell annotations in deconvolution step
-  parser.add_argument("--annotation", help="Annotation parameter for spatial mapping", default="cell_subclass", type = "str")
 
-
-  # Developer & verbosity arguments
-  # Module verbosity argument, either True (1) or False (0), False by default
-  parser.add_argument("-v", "--verbose", help="module verbosity flag",
-                      nargs="?", const=1, default=0, type=int)
-  # Module debug argument, either True (1) or False (0), False by default
-  parser.add_argument("-d", "--debug", help="module debug flag",
-                      nargs="?", const=1, default=0, type=int)
+  # # Developer & verbosity arguments
+  # # Module verbosity argument, either True (1) or False (0), False by default
+  # parser.add_argument("-v", "--verbose", help="module verbosity flag",
+  #                     nargs="?", const=1, default=0, type=int)
+  # # Module debug argument, either True (1) or False (0), False by default
+  # parser.add_argument("-d", "--debug", help="module debug flag",
+  #                     nargs="?", const=1, default=0, type=int)
   
   return None
-
-
 
 
 ## Parsing from command line, and running the script. 
@@ -100,4 +107,5 @@ if __name__ == "__main__":
 
   if (args.debug):
     print("Debugging on.\n")
-
+  
+  execute_tangram_workflow(args)
