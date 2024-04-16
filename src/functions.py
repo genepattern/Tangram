@@ -301,7 +301,7 @@ def execute_tangram_workflow(args):
 
     plot_initial(adata_sc,adata_sp, args.spatial_alpha, args.umap_point_size, args.spatial_plot_filename, args.umap_plot_filename)
 
-    markers = read_markers(adata_sc, args.training_mode, args.n, args.marker_genes_input)
+    markers = read_markers(adata_sc, args.training_mode, args.number_training_genes, args.marker_genes_input)
 
     preprocessing(adata_sc, adata_sp, markers)
 

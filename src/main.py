@@ -42,11 +42,11 @@ def main():
   
   # UMAP point size argument, used for one plot (initial umap); integer value:
   parser.add_argument("--umap_point_size", help="umap point size in single-cell initial scanpy plot",
-                    nargs="?", const=1, type=int, default=10)
+                    type=int, default=10)
   
   # Alpha value for scanpy spatial plot opacity; float value ranging from 0.0 to 1.0, inclusive:
   parser.add_argument("--spatial_alpha", help="alpha value in single-cell scanpy spatial plots",
-                    nargs="?", const=1, type=float, default=0.7)
+                    type=float, default=0.7)
   
   # Boolean value for whether to use top n differentially expressed genes as training genes:
   parser.add_argument("--training_mode", help="choice for whether to use top n differentially expressed" 
@@ -55,24 +55,23 @@ def main():
 
   # Alpha value for training score plot opacity; float value ranging from 0.0 to 1.0, inclusive:
   parser.add_argument("--training_alpha", help="alpha value in training score plots",
-                    nargs="?", const=1, type=float, default=0.5)
+                    type=float, default=0.5)
   
   # Number of top differentially expressed genes to use as training genes, only considered if use_top_n is true:
   parser.add_argument("-n", "--number_training_genes", help="number of top differentially expressed genes to"
-                    + "use for training", nargs="?", const=1, type=int, default=100)
+                    + "use for training", type=int, default=100)
   
   # File input for manual training marker gene selection, only considered if use_top_n is false:
-  parser.add_argument("--marker_genes_input", help="file input in case of manual training marker gene selection",
-                    nargs="?", const=1)
+  parser.add_argument("--marker_genes_input", help="file input in case of manual training marker gene selection")
 
   # Alignment mode argument, accepted values are: "cluster", "cell", or "constrained"; gpu pref if "cell":
   parser.add_argument("--alignment_mode", help="tangram alignment mode (cluster, cell, or constrained)",
-                      nargs="?", const=1, default="cluster", choices=["cluster","cell","constrained"])
+                      default="cluster", choices=["clusters","cells","constrained"])
   
   # Alignment cell density argument, accepted values are either "rna_count_based" (cell density prop. to number of RNA molecules) 
   # or "uniform" (if spatial voxels at single cell resolution):
   parser.add_argument("--density_prior", help="tangram alignment cell density within each spatial voxel (uniform or rna_count_based)",
-                      nargs="?", const=1, default="rna_count_based", choices=["rna_count_based","uniform"])
+                      default="rna_count_based", choices=["rna_count_based","uniform"])
   
   parser.add_argument("--annotation_type", help="annotation type for tangram projection", default="cell_subclass", type=str)
   
@@ -80,7 +79,7 @@ def main():
   # TODO: look into how to potentially obtain a somewhat optimal value of this for users, might be useful to investigate
   # some of the commented-out "robust" argument code in tg; could potentially calculate this value for users based on outliers
   parser.add_argument("--perc", help="tangram range of color-mapping for plots (adjust to remove outliers)",
-                      nargs="?", const=1, default=0.02, type=float)
+                      default=0.02, type=float)
 
   # TODO: Make educated decision about default # of epochs, current default value set same as tutorial
   parser.add_argument("--num_epochs", help="Number of iterations for function mapping", type=int, default=500)
@@ -103,9 +102,10 @@ def main():
 if __name__ == "__main__":
 
   parser = argparse.ArgumentParser()
+  main()
   args = parser.parse_args()
 
-  if (args.debug):
-    print("Debugging on.\n")
+  # if (args.debug):
+  #   print("Debugging on.\n")
   
   execute_tangram_workflow(args)
