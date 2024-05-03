@@ -1,5 +1,3 @@
-## python script to include required functions for running
-## add any required functions here
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -8,66 +6,63 @@ import scanpy as sc
 import tangram as tg
 import anndata as ad
 
-def read_data(input):
-  """
-    Read in user input, either a .gct or .h5ad file of scrna/spatial data.
+def h5ad_input(input):
+    """
+    Read in user input, a .h5ad file of either sc/snrna or spatial data.
     
     Args:
-        input (filename): .gct/.h5ad file containing single cell or spatial data input
+        input (str): filename of a .h5ad containing single cell or spatial data input
 
     Returns:
         AnnData object
-  """
-  
-  if (input.endswith(".gct")):
-    gct_df = pd.read_csv(input, sep='\t', skiprows=2)
-    gene_names = gct_df.columns[2:]
-    sample_names = gct_df.iloc[:, 0]
-    expression_data = gct_df.iloc[:, 2:].T # remove gene and sample names
-    adata = ad.AnnData(X=expression_data.values, obs=sample_names, var=gene_names)
-
-  elif (input.endswith(".h5ad")):
-    adata = sc.read_h5ad(input)
-
-  return adata
-
-def plot_initial(adata_sc, adata_sp, sc_alpha, umap_dotsize, sc_filename, umap_filename):
     """
-    Outputs initial plots of sc and spatial anndata and saves them to files
+
+    # Removed .gct input code (available in previous commits)
+
+    adata = sc.read_h5ad(input)
+    return adata
+
+def plot_initial(adata_sc, adata_sp, sp_cluster_field, sc_celltype_field, sc_alpha, umap_dotsize, sc_filename, umap_filename):
+    """
+    Outputs initial plots of sc/snrna and spatial AnnData objects to files.
     
     Args:
-        adata_sc: anndata object of single-cell data
-        adata_sp: anndata object of spatial data
-        sc_alpha: alpha value for single-cell data plot 
-        umap_dotsize: umap dot size for spatial data plot
-        sc_filename: filename for single-cell data plot
-        umap_filename: filename for umap plot
+        adata_sc (AnnData): object of single-cell data
+        adata_sp (AnnData): object of spatial data
+        sp_cluster_field (str): name of .obs field in spatial data with cluster groupings 
+        sc_celltype_field (str): name of .obs field in sc/snrna data with cell-type groupings
+        sc_alpha (float): opacity value for single-cell data plot (lower is more transparent)
+        umap_dotsize (int): umap dot size for spatial data plot
+        sc_filename (str): output filename for single-cell data plot
+        umap_filename (str): output filename for umap plot
     
     Returns:
         N/A
     """
+
     fig, ax = plt.subplots(figsize=(10, 5))
-    sc.pl.spatial(adata_sp, color="cluster", alpha=sc_alpha, frameon=False, show=False, ax=ax)
+    sc.pl.spatial(adata_sp, color=sp_cluster_field, alpha=sc_alpha, frameon=False, show=False, ax=ax)
     plt.tight_layout()
     plt.savefig(sc_filename)
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    sc.pl.umap(adata_sc, color="cell_subclass", size=umap_dotsize, frameon=False, show=False, ax=ax)
+    sc.pl.umap(adata_sc, color=sc_celltype_field, size=umap_dotsize, frameon=False, show=False, ax=ax)
     plt.tight_layout()
     plt.savefig(umap_filename)
     plt.close(fig)
-    
+
 def gmt_input(filename):
     """
-        Read in user input .gmt and convert to a list of genes as strings
+    Read in user input .gmt and convert to a list of genes as strings.
         
-        Args:
-            input (filename): .gmt file with a single line (one gene set)
+    Args:
+        input (filename): filename of .gmt file with a single line (one set of genes)
 
-        Returns:
-            Genes as a list of strings
+    Returns:
+        Genes as a list of strings
     """
+
     with open(filename, 'r') as file:
         line = file.readline()
         cells = line.strip().split('\t')
@@ -75,59 +70,64 @@ def gmt_input(filename):
 
     return genes
 
-def read_markers(adata_sc, mode, n, gmt_file):
+def read_markers(adata_sc, mode, sc_celltype_field, n, gmt_file):
     """
-        Evaluates mode (use top n genes across cell types or gmt file input) and returns training genes
+    Only utilized in test-train prediction mode.
+    Evaluates training mode (use top n genes across cell types, .gmt file input, or all genes shared between the datasets) and returns training genes.
         
-        Args:
-            adata_sc: single-cell anndata object
-            mode: "Use Top N Genes" or "Use GMT File Input"
-            n: For "Use Top N Genes", the value of N across cell types
-            gmt_file: For "Use GMT File Input", the path to the one-line gmt
+    Args:
+        adata_sc (AnnData): object of single-cell data
+        mode (str): test-train mode ("Top N Genes," "GMT File Input," or "All Genes")
+        sc_celltype_field (str): name of .obs field in sc/snrna data with cell-type groupings
+        n (int): for "Top N Genes," the value of N across cell types
+        gmt_file (str): for "GMT File Input," the filename of the one-line .gmt
 
-        Returns:
-            List of training genes
+    Returns:
+        List of training genes or None (in the case of "All Genes")
     """
 
-    if (mode == "Use Top N Genes"):
-        sc.tl.rank_genes_groups(adata_sc, groupby="cell_subclass", use_raw=False)
+    if (mode == "Top N Genes"):
+        sc.tl.rank_genes_groups(adata_sc, groupby=sc_celltype_field, use_raw=False)
         markers_df = pd.DataFrame(adata_sc.uns["rank_genes_groups"]["names"]).iloc[0:n, :]
         markers = list(np.unique(markers_df.melt().value.values))
-    else:
+    elif (mode == "GMT File Input"):
         markers = gmt_input(gmt_file)
+    else:
+       markers = None
 
     return markers
 
-def preprocessing(adata_sc, adata_st, markers):
-  """
-    Use Tangram's pp_adatas for preprocessing
+def preprocessing(adata_sc, adata_sp, markers):
+    """
+    Use Tangram's pp_adatas for preprocessing (only keeps shared genes, removes genes with 0-count in a dataset, etc).
     
     Args:
-        adata_sc (AnnData): single cell data
-        adata_sp (AnnData): spatial data
-        markers (list of strs): training genes list
+        adata_sc (AnnData): object of single cell data
+        adata_sp (AnnData): object of spatial data
+        markers (list of strs): training genes list as strings
 
     Returns:
-        AnnData object containing mapping
-        - cell-by-spot matrix X - probability of cell i to be in spot j
-        - obs (dataframe) - metadata of single cells
-        - var (dataframe) - metadata of spatial data
-        - uns (dictionary) - dataframe with various info about training genes (saved as train_genes_df).
-        
-  """
-  tg.pp_adatas(adata_sc, adata_st, genes=markers)
+        N/A (pp_adatas processes input objects)       
+    """
 
-def find_alignment(adata_sc_in, adata_sp_in, mode_in, density_in, num_epochs_in, device_in, cluster_label_in=None):
-  """
-    Use Tangram's map_cells_to_space to create alignment map
-    
+    tg.pp_adatas(adata_sc, adata_sp, genes=markers)
+
+def find_alignment(adata_sc, adata_sp, mode, sc_celltype_field, density_prior, num_epochs, device):
+    """
+    Use Tangram's map_cells_to_space to create alignment map.
+
     Args:
-        adata_sc (AnnData): single cell data
-        adata_sp (AnnData): spatial data
-        mode (str): "cells" (default, GPU recommended) or "clusters" (averages single cells belonging to same cluster)
-        cluster_label (str): annotations, for cluster-mode mapping only
-        density_prior (str): "uniform" (if spatial voxels at single-cell resolution)
-                            or "rna_count_based" (assumes cell density is proportional to # RNA molecules)          
+        adata_sc (AnnData): object of single cell data
+        adata_sp (AnnData): object of spatial data
+        mode (str): choice of either one of:
+                        "cells" (default, GPU recommended), 
+                        "clusters" (averages single cells belonging to same cluster),
+                        "constrained" (for deconvolution)
+        sc_celltype_field (str): for "constrained" mode, name of .obs field in sc/snrna data with cell-type groupings
+        density_prior (str): choice of either one of:
+                                "uniform" (if spatial voxels at single-cell resolution),
+                                "rna_count_based" (assumes cell density is proportional to # of RNA molecules),
+                                for "constrained" mode, is calculated to be the fraction of cells per voxel        
         num_epochs (int): # of iterations for function mapping
         device (str): "cuda:0" (GPU) or "cpu"
 
@@ -137,125 +137,193 @@ def find_alignment(adata_sc_in, adata_sp_in, mode_in, density_in, num_epochs_in,
         - obs (dataframe) - metadata of single cells
         - var (dataframe) - metadata of spatial data
         - uns (dictionary) - dataframe with various info about training genes (saved as train_genes_df).
-        
-  """
-
-  adata_map = tg.map_cells_to_space(adata_sc_in, adata_sp_in,
-    mode=mode_in,
-    density_prior=density_in,
-    num_epochs=num_epochs_in,
-    device=device_in,
-    cluster_label = cluster_label_in
-  )
-
-  return adata_map
-
-def map_scrna_to_space(adata_map, adata_sc, adata_sp, annotation_type, celltype_map_filename, perc):
     """
-    Use Tangram's project_cell_annotations to transfer annotation from mapping to space, then plot
+
+    # Accounting for deconvolution
+    if (mode == "constrained"):
+        target_count = adata_sp.obs.cell_count.sum()
+        density_prior = np.array(adata_sp.obs.cell_count) / target_count
+    else:
+        target_count = None
+
+    # Accounting for cluster mode:
+    if (mode != "clusters"):
+        sc_celltype_field = None
+
+    adata_map = tg.map_cells_to_space(adata_sc, adata_sp,
+        mode=mode,
+        target_count=target_count,
+        density_prior=density_prior,
+        num_epochs=num_epochs,
+        cluster_label=sc_celltype_field,
+        device=device
+    )
+
+    return adata_map
+
+def map_scrna_to_space(adata_map, adata_sc, adata_sp, sc_celltype_field, celltype_map_filename, perc):
+    """
+    Use Tangram's project_cell_annotations to transfer annotation from mapping to space, then plot.
     
     Args:
-        adata_map (AnnData): alignment map
-        adata_sc (AnnData): single-cell data
-        adata_sp (AnnData): spatial data
-        annotation (str)
-        perc (double): colormap range
-        celltype_map_filename (str): Filename to save the plot (optional)
+        adata_map (AnnData): object of alignment map
+        adata_sc (AnnData): object of single-cell data
+        adata_sp (AnnData): object of spatial data
+        sc_celltype_field (str): name of .obs field in sc/snrna data with cell-type groupings
+        perc (float): colormap range
+        celltype_map_filename (str): Filename to output the plot
         
     Returns:
         Plots with spatial mapping
-        
     """
 
-    tg.project_cell_annotations(adata_map, adata_sp, annotation=annotation_type)
-    annotation_list = list(pd.unique(adata_sc.obs[annotation_type]))
-    tg.plot_cell_annotation_sc(adata_sp, annotation_list,perc)
+    tg.project_cell_annotations(adata_map, adata_sp, annotation=sc_celltype_field)
+    annotation_list = list(pd.unique(adata_sc.obs[sc_celltype_field]))
+    tg.plot_cell_annotation_sc(adata_sp, annotation_list, perc)
     
-    # Save the plot
     plt.savefig(celltype_map_filename)
     plt.close()
 
     return annotation_list
 
+# Replacement function of tg.plot_training_scores() for saving output plot
 def plot_training_replacement(adata_map, training_alpha, num_bins, filename):
-  """
-  Plots the 4-panel training diagnosis plot
-
-  Args:
-      adata_map (AnnData):
-      bins (int or string): Optional. Default is 10.
-      alpha (float): Optional. Ranges from 0-1, and controls the opacity. Default is 0.7.
-
-  Returns:
-      None
-  """
-  fig, axs = plt.subplots(1, 4, figsize=(12, 3), sharey=True)
-  df = adata_map.uns["train_genes_df"]
-  axs_f = axs.flatten()
-
-  # set limits for axis
-  axs_f[0].set_ylim([0.0, 1.0])
-  for i in range(1, len(axs_f)):
-      axs_f[i].set_xlim([0.0, 1.0])
-      axs_f[i].set_ylim([0.0, 1.0])
-
-  #     axs_f[0].set_title('Training scores for single genes')
-  sns.histplot(data=df, y="train_score", bins=num_bins, ax=axs_f[0], color="coral")
-
-  axs_f[1].set_title("score vs sparsity (single cells)")
-  sns.scatterplot(
-      data=df,
-      y="train_score",
-      x="sparsity_sc",
-      ax=axs_f[1],
-      alpha=training_alpha,
-      color="coral",
-  )
-
-  axs_f[2].set_title("score vs sparsity (spatial)")
-  sns.scatterplot(
-      data=df,
-      y="train_score",
-      x="sparsity_sp",
-      ax=axs_f[2],
-      alpha=training_alpha,
-      color="coral",
-  )
-
-  axs_f[3].set_title("score vs sparsity (sp - sc)")
-  sns.scatterplot(
-      data=df,
-      y="train_score",
-      x="sparsity_diff",
-      ax=axs_f[3],
-      alpha=training_alpha,
-      color="coral",
-  )
-
-  plt.tight_layout()
-  plt.savefig(filename)
-
-def project(adata_map, adata_sc, predictions_filename):
-  ad_ge = tg.project_genes(adata_map, adata_sc)
-  ad_ge.write(predictions_filename)
-  return ad_ge
-
-def plot_auc_replacement(ad_ge, adata_st, adata_sc, filename, test_genes=None):
     """
-      A replacement function of the tangram-sc library's plot_auc.
-      Plots auc curve which is used to evaluate model performance.
+    Plots the 4-panel training diagnosis plot.
+
+    Args:
+        adata_map (AnnData): object containing alignment map
+        num_bins (int): number of histogram bins
+        alpha (float): plot opacity value (lower is more transparent)
+        filename (str): name of file to output plots to
+
+    Returns:
+        N/A
+    """
+
+    fig, axs = plt.subplots(1, 4, figsize=(12, 3), sharey=True)
+    df = adata_map.uns["train_genes_df"]
+    axs_f = axs.flatten()
+
+    axs_f[0].set_ylim([0.0, 1.0])
+    for i in range(1, len(axs_f)):
+        axs_f[i].set_xlim([0.0, 1.0])
+        axs_f[i].set_ylim([0.0, 1.0])
+
+    axs_f[0].set_title('Training scores for single genes')
+    sns.histplot(data=df, y="train_score", bins=num_bins, ax=axs_f[0], color="coral")
+
+    axs_f[1].set_title("score vs sparsity (single cells)")
+    sns.scatterplot(
+        data=df,
+        y="train_score",
+        x="sparsity_sc",
+        ax=axs_f[1],
+        alpha=training_alpha,
+        color="coral",
+    )
+
+    axs_f[2].set_title("score vs sparsity (spatial)")
+    sns.scatterplot(
+        data=df,
+        y="train_score",
+        x="sparsity_sp",
+        ax=axs_f[2],
+        alpha=training_alpha,
+        color="coral",
+    )
+
+    axs_f[3].set_title("score vs sparsity (sp - sc)")
+    sns.scatterplot(
+        data=df,
+        y="train_score",
+        x="sparsity_diff",
+        ax=axs_f[3],
+        alpha=training_alpha,
+        color="coral",
+    )
+
+    plt.tight_layout()
+    plt.savefig(filename)
+
+# Replacement function of tg.plot_test_scores() for saving output plot
+def plot_test_replacement(df_gene_score, bins, alpha, filename):
+    """
+    Plots gene level test scores with each gene's sparsity for mapping result.
     
     Args:
-        ad_ge (AnnData): anndata object of predicted spatial data
-        adata_st: anndata object of input spatial data
-        adata_sc: anndata object of input scrna data
-        test_genes (list): list of test genes, if not given, test_genes will be set to genes where 'is_training' field is False
+        df_gene_score (Pandas dataframe): returned by compare_spatial_geneexp(adata_ge, adata_sp, adata_sc); 
+                       with "gene names" as the index and "score", "sparsity_sc", "sparsity_sp", "sparsity_diff" as the columns
+        bins (int): number of histogram bins
+        alpha (float): plot opacity value (lower is more transparent)
+        filename (str): name of file to output plots to
 
     Returns:
         None
     """
 
-    df_all_genes = tg.compare_spatial_geneexp(ad_ge, adata_st, adata_sc)
+    if not set(["score", "sparsity_sc", "sparsity_sp", "sparsity_diff"]).issubset(
+        set(df_gene_score.columns)
+    ):
+        raise ValueError(
+            "There are missing columns in df_gene_score. Run `compare_spatial_geneexp` with `adata_ge`, `adata_sp`, and `adata_sc` to produce complete dataframe input."
+        )
+
+    if "is_training" in df_gene_score.keys():
+        df = df_gene_score[df_gene_score["is_training"] == False]
+    else:
+        df = df_gene_score
+
+    df.rename({"score": "test_score"}, axis="columns", inplace=True)
+
+    fig, axs = plt.subplots(1, 4, figsize=(12, 3), sharey=True)
+    axs_f = axs.flatten()
+
+    axs_f[0].set_ylim([0.0, 1.0])
+    for i in range(1, len(axs_f)):
+        axs_f[i].set_xlim([0.0, 1.0])
+        axs_f[i].set_ylim([0.0, 1.0])
+
+    sns.histplot(data=df, y="test_score", bins=bins, ax=axs_f[0])
+
+    axs_f[1].set_title("score vs sparsity (single cells)")
+    sns.scatterplot(data=df, y="test_score", x="sparsity_sc", ax=axs_f[1], alpha=alpha)
+
+    axs_f[2].set_title("score vs sparsity (spatial)")
+    sns.scatterplot(data=df, y="test_score", x="sparsity_sp", ax=axs_f[2], alpha=alpha)
+
+    axs_f[3].set_title("score vs sparsity (sp - sc)")
+    sns.scatterplot(
+        data=df, y="test_score", x="sparsity_diff", ax=axs_f[3], alpha=alpha
+    )
+    plt.tight_layout()
+    plt.savefig(filename)
+
+# TODO: add function comment
+def project(adata_map, adata_sc, predictions_filename):
+
+    ad_ge = tg.project_genes(adata_map, adata_sc)
+    ad_ge.write(predictions_filename)
+
+    return ad_ge
+
+# Replacement function of tg.plot_auc() due to seaborn version issues
+def plot_auc_replacement(ad_ge, adata_sp, adata_sc, plot_filename, data_filename, test_genes=None):
+    """
+      Plots auc curve which is used to evaluate model performance.
+    
+    Args:
+        ad_ge (AnnData): anndata object of predicted spatial data
+        adata_sp (AnnData): object of input spatial data
+        adata_sc (AnnData): object of input sc/snrna data
+        test_genes (list of strs): test genes, and if not given, test_genes will be set to genes where 'is_training' field is False
+
+    Returns:
+        N/A
+    """
+
+    df_all_genes = tg.compare_spatial_geneexp(ad_ge, adata_sp, adata_sc)
+    df_all_genes.to_csv(data_filename, sep='\t')
     
     metric_dict, ((pol_xs, pol_ys), (xs, ys)) = tg.eval_metric(df_all_genes, test_genes)
     
@@ -275,13 +343,16 @@ def plot_auc_replacement(ad_ge, adata_st, adata_sc, filename, test_genes=None):
     
     textstr = 'auc_score={}'.format(np.round(metric_dict['auc_score'], 3))
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.3)
-    # place a text box in upper left in axes coords
-    plt.text(0.03, 0.1, textstr, fontsize=11, verticalalignment='top', bbox=props)
-    plt.savefig(filename)
 
-def plot_genes(genes_filepath, adata_sp, ad_ge, plot_genes_outpath, perc=0.02):
+    plt.text(0.03, 0.1, textstr, fontsize=11, verticalalignment='top', bbox=props)
+    plt.savefig(plot_filename)
+
+# TODO: add function comment
+def plot_genes(genes_filepath, adata_sp, ad_ge, plot_genes_outpath, perc):
+  
   genes = gmt_input(genes_filepath)
   fig = tg.plot_genes_sc(genes, adata_measured=adata_sp, adata_predicted=ad_ge, perc=perc, return_figure=True)
+
   fig.savefig(plot_genes_outpath)
 
 def execute_tangram_workflow(args):
@@ -289,15 +360,14 @@ def execute_tangram_workflow(args):
     Function to execute the Tangram workflow based on parsed arguments.
 
     Args:
-        args (argparse.Namespace): Parsed arguments from command line
+        args (argparse.Namespace): parsed arguments from command line
 
     Returns:
         None
     """
-    ## Parsing from command line, and running the script. 
 
-    adata_sp = read_data(args.sp)
-    adata_sc = read_data(args.sc)
+    adata_sp = h5ad_input(args.sp)
+    adata_sc = h5ad_input(args.sc)
 
     plot_initial(adata_sc,adata_sp, args.spatial_alpha, args.umap_point_size, args.spatial_plot_filename, args.umap_plot_filename)
 
@@ -309,8 +379,9 @@ def execute_tangram_workflow(args):
 
     map_scrna_to_space(adata_map, adata_sc, adata_sp, args.annotation_type, args.celltype_plot_filename, args.perc)
 
-    # TODO; handle the histogram bins input more smoothly
-    plot_training_replacement(adata_map, args.training_alpha, 20, args.training_plot_filename)
+    plot_training_replacement(adata_map, args.training_alpha, args.train_bin_num, args.training_plot_filename)
+
+    # TODO: add testing plots and handle the compare_spatial_geneexp() usage to minimize its computation
 
     ad_ge = project(adata_map, adata_sc, args.predictions_filename)
 
