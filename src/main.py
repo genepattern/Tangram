@@ -1,20 +1,15 @@
-## python script to run main function 
-## Add any argument parsing, function calling, here
-
 import argparse
 from functions import * 
 
-### main function to parse arguments
-## calls from functions.py to run functions
 def main():
 
   # File input arguments
   # Spatial data file input (.gct/.h5ad):
   parser.add_argument("--sp", "--spatial", help="spatial data file input"
-                      + " Valid file format(s): .gct/.h5ad")
+                      + " Valid file format(s): .h5ad")
   # Single-cell data file input (.gct/.h5ad):
   parser.add_argument("--sc", "--scrna", help="single-cell data file input"
-                      + " Valid file format(s): .gct/.h5ad")
+                      + " Valid file format(s): .h5ad")
   # GMT file input of genes to plot measured vs predicted for (.gmt):
   parser.add_argument("--genes_to_plot", help="file input of genes to plot measured vs predicted for"
                       + " Valid file format(s): .gmt")
@@ -36,9 +31,19 @@ def main():
   parser.add_argument("--predictions_filename", help="filename for anndata predictions output")
 
   # Tangram parameter arguments
-  # # Classification mode ("test-train" or "loocv"):
-  # parser.add_argument("-m", "--classification_mode", help="tangram classification mode (test-train or loocv)",
-  #                     nargs="?", const=1, default="test-train", choices=["test-train","loocv"])
+  # Classification mode ("Test-Train" or "Cross-Validation"):
+  parser.add_argument("--classification_mode", help="tangram classification mode (test-train or xval)",
+                      nargs="?", const=1, default="Test-Train", choices=["Test-Train","Cross-Validation"])
+  # Cross-Validation mode:
+  parser.add_argument("--cross_val_mode", help="CV mode, either 'loo' for loocv or '10fold' as of the tg 1.0.4",
+                      nargs="?", const=1, default="Test-Train", choices=["loo","10fold"])
+  
+  # Spatial cluster field name:
+  parser.add_argument("--sp_cluster_field", help="name of .obs field in spatial data for the cluster groupings",
+                    type=str, default="clusters")
+  # Single-cell cell-type field name:
+  parser.add_argument("--sc_celltype_field", help="name of .obs field in sc/snrna data for the cell-type groupings",
+                    type=str, default="cell_subclass")
   
   # UMAP point size argument, used for one plot (initial umap); integer value:
   parser.add_argument("--umap_point_size", help="umap point size in single-cell initial scanpy plot",
@@ -64,10 +69,16 @@ def main():
   # File input for manual training marker gene selection, only considered if use_top_n is false:
   parser.add_argument("--marker_genes_input", help="file input in case of manual training marker gene selection")
 
+  parser.add_argument("--train_bin_num", help="number of bins in the training histogram plot",
+                    type=int, default=20)
+  parser.add_argument("--test_bin_num", help="number of bins in the testing histogram plot",
+                    type=int, default=20)
+
   # Alignment mode argument, accepted values are: "cluster", "cell", or "constrained"; gpu pref if "cell":
   parser.add_argument("--alignment_mode", help="tangram alignment mode (cluster, cell, or constrained)",
                       default="cluster", choices=["clusters","cells","constrained"])
   
+  # TODO: explain that this parameter is only utilized in the cases of no deconvolution (not "constrained" mode)
   # Alignment cell density argument, accepted values are either "rna_count_based" (cell density prop. to number of RNA molecules) 
   # or "uniform" (if spatial voxels at single cell resolution):
   parser.add_argument("--density_prior", help="tangram alignment cell density within each spatial voxel (uniform or rna_count_based)",
@@ -87,13 +98,11 @@ def main():
   # TODO: Potentially adjust this so that choices are "cpu" and "cuda", for user friendliness
   parser.add_argument("--device", help="Device to use (cpu or cuda:0 for GPU)", default="cpu", choices=["cpu", "cuda:0"])
 
-  # # Developer & verbosity arguments
-  # # Module verbosity argument, either True (1) or False (0), False by default
-  # parser.add_argument("-v", "--verbose", help="module verbosity flag",
-  #                     nargs="?", const=1, default=0, type=int)
-  # # Module debug argument, either True (1) or False (0), False by default
-  # parser.add_argument("-d", "--debug", help="module debug flag",
-  #                     nargs="?", const=1, default=0, type=int)
+  # Developer & verbosity arguments
+  # Module verbosity argument, either True (1) or False (0), False by default
+  parser.add_argument("-v", "--verbose", help="module verbosity flag", default=0, type=int)
+  # Module debug argument, either True (1) or False (0), False by default
+  parser.add_argument("-d", "--debug", help="module debug flag", default=0, type=int)
   
   return None
 
@@ -105,7 +114,7 @@ if __name__ == "__main__":
   main()
   args = parser.parse_args()
 
-  # if (args.debug):
-  #   print("Debugging on.\n")
+  if (args.debug):
+    print("Debugging on.\n")
   
   execute_tangram_workflow(args)
