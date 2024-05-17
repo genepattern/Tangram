@@ -2,16 +2,19 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import skimage
 import scanpy as sc
+import squidpy as sq
 import tangram as tg
 import anndata as ad
+import zipfile
 
-def h5ad_input(input):
+def h5ad_input(filepath):
     """
     Read in user input, a .h5ad file of either sc/snrna or spatial data.
     
     Args:
-        input (str): filename of a .h5ad containing single cell or spatial data input
+        filepath (str): filename of a .h5ad containing single cell or spatial data input
 
     Returns:
         AnnData object
@@ -19,8 +22,27 @@ def h5ad_input(input):
 
     # Removed .gct input code (available in previous commits)
 
-    adata = sc.read_h5ad(input)
+    adata = sc.read_h5ad(filepath)
     return adata
+
+def img_input(filepath):
+    """
+    Read in user input, a zipped file of a zarr store of a squidpy ImageContainer object.
+    
+    Args:
+        filepath (str): filename of a zarr store zip
+
+    Returns:
+        Squidpy ImageContainer object
+    """
+
+    with zipfile.ZipFile(filepath, 'r') as zip_ref:
+        zip_ref.extractall("./unzipped_folder")
+    
+    img = sq.im.ImageContainer.load("./unzipped_folder")
+
+    return img
+
 
 def plot_initial(adata_sc, adata_sp, sc_celltype_field, sp_cluster_field, sc_alpha, umap_dotsize, sc_filename, umap_filename):
     """
@@ -73,7 +95,7 @@ def gmt_input(filename):
 # TODO: Clarify in module and documentation the usage for cv and tt modes
 def read_markers(adata_sc, mode, sc_celltype_field, n, gmt_file):
     """
-    Only utilized in BOTH test-train and cv prediction modes.
+    Utilized in BOTH test-train and cv prediction modes.
     Evaluates training mode (use top n genes across cell types, .gmt file input, or all genes shared between the datasets) and returns training genes (all genes to be used in case of cv).
         
     Args:
@@ -219,8 +241,106 @@ def map_scrna_to_space(adata_map, adata_sc, adata_sp, sc_celltype_field, celltyp
     plt.savefig(celltype_map_filename)
     plt.close()
 
-# Replacement function of tg.plot_training_scores() for saving output plot
-def plot_training_replacement(adata_map, training_alpha, num_bins, filename):
+def segment_cells(img, layer, adata_sp):
+    """
+    Use squidpy to segment cells on the corresponding histology image. This is done to know how many cells are present in each voxel.
+    
+    Args:
+        img (ImageContainer): squidpy ImageContainer object of histology data
+        layer (str): name of field containing the image layer to be processed
+        adata_sp (AnnData): object of spatial data
+
+    Returns:
+        N/A
+    """
+    sq.im.process(img=img, layer=layer, method="smooth")
+    sq.im.segment(
+        img=img,
+        layer="image_smooth",
+        method="watershed",
+        channel=0,
+    )
+
+    inset_y = 1500
+    inset_x = 1700
+    inset_sy = 400
+    inset_sx = 500
+
+    fig, axs = plt.subplots(1, 3, figsize=(30, 10))
+    sc.pl.spatial(
+        adata_sp, color="cluster", alpha=0.7, frameon=False, show=False, ax=axs[0], title=""
+    )
+    axs[0].set_title("Clusters", fontdict={"fontsize": 20})
+    axs[0].axes.xaxis.label.set_visible(False)
+    axs[0].axes.yaxis.label.set_visible(False)
+
+    axs[1].imshow(
+        img[layer][inset_y : inset_y + inset_sy, inset_x : inset_x + inset_sx, 0, 0]
+        / 65536,
+        interpolation="none",
+    )
+    axs[1].grid(False)
+    axs[1].set_xticks([])
+    axs[1].set_yticks([])
+    axs[1].set_title("DAPI", fontdict={"fontsize": 20})
+
+    crop = img["segmented_watershed"][
+        inset_y : inset_y + inset_sy, inset_x : inset_x + inset_sx
+    ].values.squeeze(-1)
+    crop = skimage.segmentation.relabel_sequential(crop)[0]
+    cmap = plt.cm.plasma
+    cmap.set_under(color="black")
+    axs[2].imshow(crop, interpolation="none", cmap=cmap, vmin=0.001)
+    axs[2].grid(False)
+    axs[2].set_xticks([])
+    axs[2].set_yticks([])
+    axs[2].set_title("Nucleous segmentation", fontdict={"fontsize": 20})
+
+# TODO: Verify all field names are not data-specific
+def extract_segmentation_features(adata_sp, img, layer, filename):
+    """
+    Use Tangram's project_cell_annotations to transfer annotation from mapping to space, then plot.
+    
+    Args:
+        adata_sp (AnnData): object of spatial data
+        img (ImageContainer): squidpy ImageContainer object of histology data
+        layer (str): name of field containing the image layer to be processed
+        filename (str): filepath to output cell density plot to
+        
+    Returns:
+        N/A
+    """
+
+    # define image layer to use for segmentation
+    features_kwargs = {
+        "segmentation": {
+            "label_layer": "segmented_watershed",
+            "props": ["label", "centroid"],
+            "channels": [1, 2],
+        }
+    }
+    # calculate segmentation features
+    sq.im.calculate_image_features(
+        adata_sp,
+        img,
+        layer=layer,
+        key_added="image_features",
+        features_kwargs=features_kwargs,
+        features="segmentation",
+        mask_circle=True,
+    )
+
+    adata_sp.obs["cell_count"] = adata_sp.obsm["image_features"]["segmentation_label"]
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sc.pl.spatial(adata_sp, color=["cell_count"], frameon=False)
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close(fig)
+
+
+# Replacement function of tg.plot_training_scores() for saving output plot, also outputs csv of training data statistics
+def plot_training_replacement(adata_map, training_alpha, num_bins, plot_filename, data_filename):
     """
     Plots the 4-panel training diagnosis plot.
 
@@ -228,14 +348,17 @@ def plot_training_replacement(adata_map, training_alpha, num_bins, filename):
         adata_map (AnnData): object containing alignment map
         num_bins (int): number of histogram bins
         alpha (float): plot opacity value (lower is more transparent)
-        filename (str): name of file to output plots to
+        plot_filename (str): name of file to output plots to
+        data_filename (str): name of file to output training data matrix to
 
     Returns:
         N/A
     """
 
-    fig, axs = plt.subplots(1, 4, figsize=(12, 3), sharey=True)
     df = adata_map.uns["train_genes_df"]
+    df.to_csv(data_filename, index=False)
+
+    fig, axs = plt.subplots(1, 4, figsize=(12, 3), sharey=True)
     axs_f = axs.flatten()
 
     axs_f[0].set_ylim([0.0, 1.0])
@@ -277,7 +400,7 @@ def plot_training_replacement(adata_map, training_alpha, num_bins, filename):
     )
 
     plt.tight_layout()
-    plt.savefig(filename)
+    plt.savefig(plot_filename)
 
 # Replacement function of tg.plot_test_scores() for saving output plot
 def plot_test_replacement(df_gene_score, bins, alpha, filename):
@@ -437,6 +560,7 @@ def execute_tangram_workflow(args):
     """
 
     adata_sp = h5ad_input(args.sp)
+    print(adata_sp)
     adata_sc = h5ad_input(args.sc)
     celltype_label = args.sc_celltype_field
 
@@ -452,7 +576,7 @@ def execute_tangram_workflow(args):
     else:
         adata_map = find_alignment(adata_sc, adata_sp, args.alignment_mode, celltype_label, args.density_prior, args.num_epochs, args.device)
         map_scrna_to_space(adata_map, adata_sc, adata_sp, celltype_label, args.celltype_plot_filename, args.perc)
-        plot_training_replacement(adata_map, args.training_alpha, args.train_bin_num, args.training_plot_filename)
+        plot_training_replacement(adata_map, args.training_alpha, args.train_bin_num, args.train_plot_filename)
         ad_ge = project(adata_map, adata_sc, args.predictions_filename)
 
         df_all_genes = compare_spatial(ad_ge, adata_sp, adata_sc, args.similarity_scores_filename)
