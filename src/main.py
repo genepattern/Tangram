@@ -10,6 +10,13 @@ def main():
   # Single-cell data file input (.gct/.h5ad):
   parser.add_argument("--sc", "--scrna", help="single-cell data file input"
                       + " Valid file format(s): .h5ad")
+  
+  # Histological image file input (.zip):
+  parser.add_argument("--img", help="zipped file of zarr store containing histology image (used for deconvolution)"
+                      + " Valid file format(s): .zip")
+  # Name of the histological image layer to process
+  parser.add_argument("--img_layer", help="image layer to process in deconvolution")
+  
   # GMT file input of genes to plot measured vs predicted for (.gmt):
   parser.add_argument("--genes_to_plot", help="file input of genes to plot measured vs predicted for"
                       + " Valid file format(s): .gmt")
@@ -19,6 +26,8 @@ def main():
   parser.add_argument("--umap_plot_filename", help="filename for initial umap plot output")
   # Filename for plot of initial spatial data 
   parser.add_argument("--spatial_plot_filename", help="filename for initial spatial plot output")
+  # Filename for training data matrix
+  parser.add_argument("--train_data_filename", help="filename for training data matrix")
   # Filename for training plot
   parser.add_argument("--train_plot_filename", help="filename for training plot")
   # Filename for testing plot
@@ -47,12 +56,11 @@ def main():
                     type=str, default="cell_subclass")
   # Spatial cluster field name:
   parser.add_argument("--sp_cluster_field", help="name of .obs field in spatial data for the cluster groupings",
-                    type=str, default="clusters")
+                    type=str, default="cluster")
   
   # UMAP point size argument, used for one plot (initial umap); integer value:
   parser.add_argument("--umap_point_size", help="umap point size in single-cell initial scanpy plot",
                     type=int, default=10)
-  
   # Alpha value for scanpy spatial plot opacity; float value ranging from 0.0 to 1.0, inclusive:
   parser.add_argument("--spatial_alpha", help="alpha value in single-cell scanpy spatial plots",
                     type=float, default=0.7)
@@ -72,7 +80,6 @@ def main():
   # Number of top differentially expressed genes to use as training genes, only considered if use_top_n is true:
   parser.add_argument("-n", "--number_training_genes", help="number of top differentially expressed genes to"
                     + "use for training", type=int, default=100)
-  
   # File input for manual training marker gene selection, only considered if use_top_n is false:
   parser.add_argument("--marker_genes_input", help="file input in case of manual training marker gene selection")
 
