@@ -36,7 +36,7 @@ def img_input(filepath):
         Squidpy ImageContainer object (or None if no filepath is provided)
     """
 
-    if (filepath == None):
+    if (filepath == None or filepath == ""):
         return None
 
     with zipfile.ZipFile(filepath, 'r') as zip_ref:
@@ -65,19 +65,36 @@ def gmt_input(filepath):
 
     return genes
 
-def plot_initial(adata_sc, adata_sp, sc_celltype_field, sp_cluster_field, sc_alpha, umap_dotsize, sc_filename, umap_filename):
+# Removed due to bugs caused by inconsistency in data inputs (without_squidpy.ipynb cannot run)
+# def plot_initial_umap(adata_sc, sc_celltype_field,  umap_dotsize, umap_filename):
+#     """
+#     Outputs initial umap plot of sc/snRNA AnnData object.
+    
+#     Args:
+#         adata_sc (AnnData): object of single-cell data
+#         sc_celltype_field (str): name of .obs field in sc/snrna data with cell type groupings
+#         umap_dotsize (int): umap dot size for spatial data plot
+#         umap_filename (str): output filename for umap plot
+    
+#     Returns:
+#         N/A
+#     """
+
+#     fig, ax = plt.subplots(figsize=(10, 5))
+#     sc.pl.umap(adata_sc, color=sc_celltype_field, size=umap_dotsize, frameon=False, show=False, ax=ax)
+#     plt.tight_layout()
+#     plt.savefig(umap_filename)
+#     plt.close(fig)
+
+def plot_initial_spatial(adata_sp, sp_cluster_field, sc_alpha, sc_filename):
     """
-    Outputs initial plots of sc/snrna and spatial AnnData objects to files.
+    Outputs initial plot of spatial AnnData object.
     
     Args:
-        adata_sc (AnnData): object of single-cell data
         adata_sp (AnnData): object of spatial data
-        sc_celltype_field (str): name of .obs field in sc/snrna data with cell type groupings
         sp_cluster_field (str): name of .obs field in spatial data with cluster groupings 
         sc_alpha (float): opacity value for single-cell data plot (lower is more transparent)
-        umap_dotsize (int): umap dot size for spatial data plot
         sc_filename (str): output filename for single-cell data plot
-        umap_filename (str): output filename for umap plot
     
     Returns:
         N/A
@@ -89,13 +106,6 @@ def plot_initial(adata_sc, adata_sp, sc_celltype_field, sp_cluster_field, sc_alp
     plt.savefig(sc_filename)
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sc.pl.umap(adata_sc, color=sc_celltype_field, size=umap_dotsize, frameon=False, show=False, ax=ax)
-    plt.tight_layout()
-    plt.savefig(umap_filename)
-    plt.close(fig)
-
-# TODO: Clarify in module and documentation the usage for cv and tt modes
 def read_markers(adata_sc, mode, sc_celltype_field, n, gmt_file):
     """
     Utilized in BOTH test-train and cv prediction modes.
@@ -138,7 +148,7 @@ def preprocessing(adata_sc, adata_sp, markers):
 
     tg.pp_adatas(adata_sc, adata_sp, genes=markers)
 
-def cv(adata_sc, adata_sp, mode, cv_mode, sc_celltype_field, device, num_epochs, verbose):
+def cv(adata_sc, adata_sp, mode, cv_mode, sc_celltype_field, device, num_epochs, verbose, data_filename):
     """
     Performs cross-validation on the data.
     
@@ -153,6 +163,7 @@ def cv(adata_sc, adata_sp, mode, cv_mode, sc_celltype_field, device, num_epochs,
         sc_celltype_field (str): for "constrained" mode, name of .obs field in sc/snrna data with cell type groupings
         device (str): "cuda:0" (GPU) or "cpu"
         num_epochs (int): # of iterations for function mapping
+        data_filename (str): filename to output matrix of test scores to
 
     Returns:
         ad_ge_cv (AnnData): object of new spatial mapping
@@ -169,6 +180,7 @@ def cv(adata_sc, adata_sp, mode, cv_mode, sc_celltype_field, device, num_epochs,
                                      verbose=verbose)
     
     print("Average cross-validation scores:", cv_dict)
+    ad_ge_cv.to_csv(data_filename, index=False)
 
     return ad_ge_cv, df_test_genes
 
@@ -221,7 +233,7 @@ def find_alignment(adata_sc, adata_sp, mode, sc_celltype_field, density_prior, n
 
     return adata_map
 
-def map_scrna_to_space(adata_map, adata_sc, adata_sp, sc_celltype_field, celltype_map_filename, perc):
+def map_scrna_to_space(adata_map, adata_sc, adata_sp, sc_celltype_field, celltype_map_filename, perc, spot_size, scale_factor):
     """
     Use Tangram's project_cell_annotations to transfer annotation from mapping to space, then plot.
     
@@ -232,14 +244,20 @@ def map_scrna_to_space(adata_map, adata_sc, adata_sp, sc_celltype_field, celltyp
         sc_celltype_field (str): name of .obs field in sc/snrna data with cell type groupings
         perc (float): colormap range
         celltype_map_filename (str): Filename to output the plot
-        
+        spot_size (int): diameter of plot spots; only used if no "spatial" field in adata_sp
+        scale_factor (float): scaling factor used to map from coordinate space to pixel space; only used if no "spatial" field in adata_sp
+
     Returns:
         N/A
     """
 
+    if 'spatial' in adata_sp.uns.keys():
+        spot_size=None
+        scale_factor=None
+
     tg.project_cell_annotations(adata_map, adata_sp, annotation=sc_celltype_field)
     annotation_list = list(pd.unique(adata_sc.obs[sc_celltype_field]))
-    tg.plot_cell_annotation_sc(adata_sp, annotation_list, perc)
+    tg.plot_cell_annotation_sc(adata_sp, annotation_list, perc=perc, spot_size=spot_size, scale_factor=scale_factor)
     
     plt.savefig(celltype_map_filename)
     plt.close()
@@ -258,11 +276,11 @@ def compare_spatial(ad_ge, adata_sp, adata_sc, data_filename):
         DataFrame of all genes' (train and test) similarity scores and sparsity statistics
     """
     df_all_genes = tg.compare_spatial_geneexp(ad_ge, adata_sp, adata_sc)
-    df_all_genes.to_csv(data_filename, sep='\t')
+    df_all_genes.to_csv(data_filename)
 
     return df_all_genes
 
-def segment_cells(img, layer, adata_sp):
+def segment_cells(img, layer, adata_sp, sp_cluster_field=None):
     """
     Use squidpy to segment cells on the corresponding histology image. This is done to know how many cells are present in each voxel.
     
@@ -270,6 +288,8 @@ def segment_cells(img, layer, adata_sp):
         img (ImageContainer): squidpy ImageContainer object of histology data
         layer (str): name of field containing the image layer to be processed
         adata_sp (AnnData): object of spatial data
+        sp_cluster_field (str): name of .obs field in spatial data with cluster groupings 
+
 
     Returns:
         N/A
@@ -287,23 +307,18 @@ def segment_cells(img, layer, adata_sp):
     inset_sy = 400
     inset_sx = 500
 
-    fig, axs = plt.subplots(1, 3, figsize=(30, 10))
-    sc.pl.spatial(
-        adata_sp, color="cluster", alpha=0.7, frameon=False, show=False, ax=axs[0], title=""
-    )
-    axs[0].set_title("Clusters", fontdict={"fontsize": 20})
-    axs[0].axes.xaxis.label.set_visible(False)
-    axs[0].axes.yaxis.label.set_visible(False)
+    num_figs = 3 if sp_cluster_field != None else 2
+    fig, axs = plt.subplots(1, num_figs, figsize=(30, 10))
 
-    axs[1].imshow(
+    axs[0].imshow(
         img[layer][inset_y : inset_y + inset_sy, inset_x : inset_x + inset_sx, 0, 0]
         / 65536,
         interpolation="none",
     )
-    axs[1].grid(False)
-    axs[1].set_xticks([])
-    axs[1].set_yticks([])
-    axs[1].set_title("DAPI", fontdict={"fontsize": 20})
+    axs[0].grid(False)
+    axs[0].set_xticks([])
+    axs[0].set_yticks([])
+    axs[0].set_title("DAPI", fontdict={"fontsize": 20})
 
     crop = img["segmented_watershed"][
         inset_y : inset_y + inset_sy, inset_x : inset_x + inset_sx
@@ -311,13 +326,20 @@ def segment_cells(img, layer, adata_sp):
     crop = skimage.segmentation.relabel_sequential(crop)[0]
     cmap = plt.cm.plasma
     cmap.set_under(color="black")
-    axs[2].imshow(crop, interpolation="none", cmap=cmap, vmin=0.001)
-    axs[2].grid(False)
-    axs[2].set_xticks([])
-    axs[2].set_yticks([])
-    axs[2].set_title("Nucleous segmentation", fontdict={"fontsize": 20})
+    axs[1].imshow(crop, interpolation="none", cmap=cmap, vmin=0.001)
+    axs[1].grid(False)
+    axs[1].set_xticks([])
+    axs[1].set_yticks([])
+    axs[1].set_title("Nucleous segmentation", fontdict={"fontsize": 20})
 
-# TODO: Verify all field names are not data-specific
+    if sp_cluster_field != None and sp_cluster_field != "":
+        sc.pl.spatial(
+            adata_sp, color=sp_cluster_field, alpha=0.7, frameon=False, show=False, ax=axs[0], title=""
+        )
+        axs[2].set_title("Clusters", fontdict={"fontsize": 20})
+        axs[2].axes.xaxis.label.set_visible(False)
+        axs[2].axes.yaxis.label.set_visible(False)
+
 def extract_segmentation_features(adata_sp, img, layer, plot_filename):
     """
     Use Tangram's project_cell_annotations to transfer annotation from mapping to space, then plot.
@@ -354,12 +376,12 @@ def extract_segmentation_features(adata_sp, img, layer, plot_filename):
     adata_sp.obs["cell_count"] = adata_sp.obsm["image_features"]["segmentation_label"]
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    sc.pl.spatial(adata_sp, color=["cell_count"], frameon=False)
+    sc.pl.spatial(adata_sp, color="cell_count", frameon=False, show=False, ax=ax)
     plt.tight_layout()
     plt.savefig(plot_filename)
     plt.close(fig)
 
-def deconvolve(adata_sc, adata_sp, adata_map, data_filename, plot_filename):
+def deconvolve(adata_sc, adata_sp, adata_map, plot_filename, deconv_segmentation_data_filename):
     """
     Create cell segmentation of spatial data and output it, and then, perform deconvolution and plot cell types in space.
     
@@ -367,8 +389,8 @@ def deconvolve(adata_sc, adata_sp, adata_map, data_filename, plot_filename):
         adata_sc (AnnData): object of single-cell data
         adata_sp (AnnData): object of spatial data
         adata_map (AnnData): object containing alignment map
-        data_filename (str): filepath to output cell segmentation AnnData object to as a .h5ad
         plot_filename (str): filepath to output cell type plot following deconvolution
+        deconv_segmentation_data_filename (str): csv filepath to output segmentation results
         
     Returns:
         N/A
@@ -377,9 +399,10 @@ def deconvolve(adata_sc, adata_sp, adata_map, data_filename, plot_filename):
     tg.create_segment_cell_df(adata_sp)
     tg.count_cell_annotations(adata_map, adata_sc, adata_sp, annotation="cell_subclass")
     adata_segment = tg.deconvolve_cell_annotations(adata_sp)
-    adata_segment.write(data_filename)
 
-    fig, ax = plt.subplots(1, 1, figsize=(20, 20))
+    adata_segment.obs.to_csv(deconv_segmentation_data_filename, index=False)
+
+    fig, ax = plt.subplots(1, 1, figsize=(30, 30))
     sc.pl.spatial(
         adata_segment,
         color="cluster",
@@ -410,7 +433,7 @@ def plot_training_replacement(adata_map, training_alpha, num_bins, plot_filename
     """
 
     df = adata_map.uns["train_genes_df"]
-    df.to_csv(data_filename, index=False)
+    df.to_csv(data_filename)
 
     fig, axs = plt.subplots(1, 4, figsize=(12, 3), sharey=True)
     axs_f = axs.flatten()
@@ -563,7 +586,7 @@ def plot_auc_replacement(df_all_genes, plot_filename, test_genes=None):
     plt.text(0.03, 0.1, textstr, fontsize=11, verticalalignment='top', bbox=props)
     plt.savefig(plot_filename)
 
-def plot_genes(genes_filepath, adata_sp, ad_ge, plot_genes_outpath, perc):
+def plot_genes(genes_filepath, adata_sp, ad_ge, plot_genes_outpath, perc, spot_size, scale_factor):
     """
     Plots measured vs predicted transcriptomic gene profiles in space 
         
@@ -573,13 +596,19 @@ def plot_genes(genes_filepath, adata_sp, ad_ge, plot_genes_outpath, perc):
         adata_ge (AnnData): object of new spatial data (from project())
         plot_genes_outpath (str): filename to output gene predicted vs measured plots to
         perc (float): colormap range
+        spot_size (int): diameter of plot spots; only used if no "spatial" field in adata_sp
+        scale_factor (float): scaling factor used to map from coordinate space to pixel space; only used if no "spatial" field in adata_sp
 
     Returns:
         N/A
     """
 
+    if 'spatial' in adata_sp.uns.keys():
+        spot_size=None
+        scale_factor=None
+
     genes = gmt_input(genes_filepath)
-    fig = tg.plot_genes_sc(genes, adata_measured=adata_sp, adata_predicted=ad_ge, perc=perc, return_figure=True)
+    fig = tg.plot_genes_sc(genes, adata_measured=adata_sp, adata_predicted=ad_ge, perc=perc, return_figure=True, spot_size=spot_size, scale_factor=scale_factor)
 
     fig.savefig(plot_genes_outpath)
 
@@ -598,8 +627,8 @@ def execute_tangram_workflow(args):
     adata_sc = h5ad_input(args.sc)
     adata_sp = h5ad_input(args.sp)
 
-    if (args.sp_annotated):
-        plot_initial(adata_sc, adata_sp, args.sc_celltype_field, args.sp_cluster_field, args.spatial_alpha, args.umap_point_size, args.spatial_plot_filename, args.umap_plot_filename)
+    if (args.sp_cluster_field != None and args.sp_cluster_field != ""):
+        plot_initial_spatial(adata_sp, args.sp_cluster_field, args.spatial_alpha, args.spatial_plot_filename)
 
     # Returns None if no image is provided
     img = img_input(args.img)
@@ -610,26 +639,26 @@ def execute_tangram_workflow(args):
     preprocessing(adata_sc, adata_sp, markers)
 
     if (args.classification_mode == "Cross-Validation"):
-        ad_ge, df_test_genes = cv(adata_sc, adata_sp, args.alignment_mode, args.cross_val_mode, args.sc_celltype_field, args.device, args.num_epochs, args.verbose)
+        ad_ge, df_test_genes = cv(adata_sc, adata_sp, args.alignment_mode, args.cross_val_mode, args.sc_celltype_field, args.device, args.num_epochs, args.verbose, args.test_data_filename)
         plot_test_replacement(df_test_genes, args.test_bin_num, args.testing_alpha, args.test_plot_filename)
 
     else:
         if (img):
             # Performing cell segmentation if an image is provided
             segment_cells(img, args.img_layer, adata_sp)
-            extract_segmentation_features(adata_sp, img, args.img_layer, args.cell_density_plot_filename)
+            extract_segmentation_features(adata_sp, img, args.img_layer, args.deconv_cell_density_plot_filename)
 
         adata_map = find_alignment(adata_sc, adata_sp, args.alignment_mode, args.sc_celltype_field, args.density_prior, args.num_epochs, args.device)
-        map_scrna_to_space(adata_map, adata_sc, adata_sp, args.sc_celltype_field, args.celltype_plot_filename, args.perc)
+        map_scrna_to_space(adata_map, adata_sc, adata_sp, args.sc_celltype_field, args.celltype_plot_filename, args.perc, args.spot_size, args.scale_factor)
         plot_training_replacement(adata_map, args.training_alpha, args.train_bin_num, args.train_plot_filename, args.train_data_filename)
         ad_ge = project(adata_map, adata_sc, args.predictions_filename)
-        df_all_genes = compare_spatial(ad_ge, adata_sp, adata_sc, args.similarity_scores_filename)
-        plot_auc_replacement(df_all_genes, args.auc_plot_filename)
-        
+
         if (img):
             # Performing deconvolution if the input image is provided
-            deconvolve(adata_sc, adata_sp, adata_map, args.cell_segmentation_data_filename, args.deconv_celltype_plot_filename)
+            deconvolve(adata_sc, adata_sp, adata_map, args.deconv_celltype_plot_filename, args.deconv_segmentation_data_filename)
 
-    plot_genes(args.genes_to_plot, adata_sp, ad_ge, args.genes_plot_filename, args.perc)
+    df_all_genes = compare_spatial(ad_ge, adata_sp, adata_sc, args.similarity_scores_filename)
+    plot_auc_replacement(df_all_genes, args.auc_plot_filename)
+    plot_genes(args.genes_to_plot, adata_sp, ad_ge, args.genes_plot_filename, args.perc, args.spot_size, args.scale_factor)
     
     return None
