@@ -1,26 +1,50 @@
 [
     {
-        "name": "Data Inputs",
-        "description": "Required file inputs.",
+        "name": "Inputs",
+        "description": "Provide data in the following required inputs ('Deconvolution Data' is OPTIONAL).",
+        "hidden": false
+    },
+    {
+        "name": "Inputs/scRNA-Seq Data",
+        "description": "Provide the required scRNA/snRNA-Seq data and its corresponding cell type field.",
         "hidden": false,
         "parameters": [
             "single.cell.data.file",
+            "cell.type.metadata.field"
+        ]
+    },
+    {
+        "name": "Inputs/Spatial Data",
+        "description": "Provide the required spatial transcriptomic data and, optionally, its corresponding cluster field.",
+        "hidden": false,
+        "parameters": [
             "spatial.data.file",
+            "cluster.metadata.field"
+        ]
+    },
+    {
+        "name": "Inputs/Genes to Plot",
+        "description": "Provide a one-line .gmt file of genes to plot as observed vs expected transcription of in space.",
+        "hidden": false,
+        "parameters": [
             "genes.to.plot.data.file"
         ]
     },
     {
-        "name": "Output Filenames",
-        "description": "Filenames for output plots and objects.",
+        "name": "Inputs/OPTIONAL: Deconvolution Data",
+        "description": "Optionally, for carrying out deconvolution, provide a histological image in the following format.<br><b>Note:</b> You must set the alignment mode to 'constrained'",
         "hidden": true,
         "parameters": [
-            "umap.plot.filename",
-            "spatial.plot.filename",
-            "training.plot.filename",
-            "genes.plot.filename",
-            "auc.plot.filename",
-            "celltype.plot.filename",
-            "predictions.filename"
+            "histological.image.file",
+            "img.metadata.field"
+        ]
+    },
+    {
+        "name": "Output Filenames",
+        "description": "Output filename tag for generated plots and data.",
+        "hidden": true,
+        "parameters": [
+            "output.file.tag"
         ]
     },
     {
@@ -28,24 +52,47 @@
         "description": "Options for prediction model training.",
         "hidden": false,
         "parameters": [
+            "classification.mode",
+            "cross.val.mode",
             "training.mode",
-            "num.top.de.genes",
+            "num.top.DE.genes",
             "training.genes.input"
         ]
     },
     {
-        "name": "Optional Parameters",
-        "description": "Optional algorithmic and cosmetic parameters.",
-        "hidden": true,
+        "name": "Algorithmic Parameters",
+        "description": "Options for specifying how the algorithm is carried out.",
+        "hidden": false,
         "parameters": [
-            "spatial.alpha",
-            "umap.point.size",
-            "training.alpha",
             "alignment.mode",
             "alignment.cell.density",
-            "annotation.type",
-            "color.mapping.perc",
             "num.epochs"
+        ]
+    },
+    {
+        "name": "Visualization Parameters",
+        "description": "Optional cosmetic parameters for visualizations.",
+        "hidden": true,
+        "parameters": [
+            "spot.size",
+            "scale.factor",
+            "spatial.opacity",
+            "training.opacity",
+            "testing.opacity",
+            "deconv.opacity",
+            "deconv.point.size",
+            "training.bin.num",
+            "testing.bin.num",
+            "color.mapping.perc"
+        ]
+    },
+    {
+        "name": "Developer Parameters",
+        "description": "Parameters for debugging.",
+        "hidden": true,
+        "parameters": [
+            "debug",
+            "verbose"
         ]
     }
 ]

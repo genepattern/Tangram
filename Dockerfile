@@ -12,7 +12,7 @@ LABEL maintainer="Julia Kononova jkononova@ucsd.edu, Omar Halawa ohalawa@ucsd.ed
 
 # Ensuring up-to-date pip and importing necessary modules 
 RUN pip install --upgrade pip && \
-    pip install numpy==1.24.3 \
+    pip install numpy==1.23.5 \
      pandas==2.2.0 \
      scipy==1.11.1 \
      jupyterlab==3.6.3 \
@@ -37,4 +37,3 @@ RUN mkdir /Tangram \
 
 USER gpuser
 COPY src/*.py /Tangram/
-COPY src/*.ipynb /Tangram/
