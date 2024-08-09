@@ -1,0 +1,49 @@
+
+name: gpunit_29104
+# description: created from job 29104
+# ET(ms): 186000# from server:  https://genepattern.ucsd.edu/gp/
+module: Tangram.GPU
+# lsid: urn:lsid:8080.genepattern.genepattern.sdsc.edu:genepatternmodules:9:1
+params: 
+    "single.cell.data.file": "inputs/sc_data.h5ad"
+    "cell.type.metadata.field": "cell_subclass"
+    "spatial.data.file": "inputs/sp_data.h5ad"
+    "cluster.metadata.field": "cluster"
+    "histological.image.file": ""
+    "img.metadata.field": ""
+    "classification.mode": "Test-Train"
+    "training.mode": "Top N Genes"
+    "num.top.DE.genes": "100"
+    "training.genes.input": ""
+    "alignment.mode": "cells"
+    "alignment.cell.density": "RNA count-based"
+    "num.epochs": "500"
+    "spot.size": "50"
+    "scale.factor": "0.1"
+    "spatial.opacity": "0.7"
+    "training.opacity": "0.5"
+    "testing.opacity": "0.5"
+    "deconv.opacity": "0.2"
+    "deconv.point.size": "0.4"
+    "training.bin.num": "20"
+    "testing.bin.num": "20"
+    "color.mapping.perc": "0.02"
+    "debug": "0"
+    "verbose": "0"
+    "output.file.tag": "<single.cell.data.file_basename>_<spatial.data.file_basename>"
+    "genes.to.plot.data.file": "inputs/genes_to_plot_WITH_SQUIDPY.gmt"
+
+assertions: 
+    jobStatus: success
+    files: 
+        initial_spatial_plot_sc_data_sp_data.png: !!null
+        cell_type_plot_sc_data_sp_data.png: !!null
+        training_data_sc_data_sp_data.csv: !!null
+        training_plot_sc_data_sp_data.png: !!null
+        predictions_sc_data_sp_data.h5ad: !!null
+        similarity_scores_sc_data_sp_data.csv: !!null
+        auc_plot_sc_data_sp_data.png: !!null
+        gene_plots_sc_data_sp_data.png: !!null
+        stderr.txt: !!null
+        stdout.txt: !!null
+        gp_execution_log.txt: !!null

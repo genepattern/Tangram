@@ -1,0 +1,48 @@
+
+name: gpunit_29106
+# description: created from job 29106
+# ET(ms): 311000# from server:  https://genepattern.ucsd.edu/gp/
+module: Tangram.GPU
+# lsid: urn:lsid:8080.genepattern.genepattern.sdsc.edu:genepatternmodules:9:1
+params: 
+    "single.cell.data.file": "inputs/mop_sn_tutorial.h5ad"
+    "cell.type.metadata.field": "subclass_label"
+    "spatial.data.file": "inputs/slideseq_MOp_1217.h5ad"
+    "cluster.metadata.field": ""
+    "histological.image.file": ""
+    "img.metadata.field": ""
+    "classification.mode": "Test-Train"
+    "training.mode": "Top N Genes"
+    "num.top.DE.genes": "100"
+    "training.genes.input": "inputs/MOp_markers.gmt"
+    "alignment.mode": "cells"
+    "alignment.cell.density": "RNA count-based"
+    "num.epochs": "1000"
+    "spot.size": "50"
+    "scale.factor": "0.1"
+    "spatial.opacity": "0.7"
+    "training.opacity": "0.5"
+    "testing.opacity": "0.5"
+    "deconv.opacity": "0.2"
+    "deconv.point.size": "0.4"
+    "training.bin.num": "20"
+    "testing.bin.num": "20"
+    "color.mapping.perc": "0.001"
+    "debug": "0"
+    "verbose": "0"
+    "output.file.tag": "WITHOUT_SQUIDPY_TT"
+    "genes.to.plot.data.file": "inputs/genes_to_plot_WITHOUT_SQUIDPY_TT.gmt"
+
+assertions: 
+    jobStatus: success
+    files: 
+        cell_type_plot_WITHOUT_SQUIDPY_TT.png: !!null
+        training_data_WITHOUT_SQUIDPY_TT.csv: !!null
+        training_plot_WITHOUT_SQUIDPY_TT.png: !!null
+        predictions_WITHOUT_SQUIDPY_TT.h5ad: !!null
+        similarity_scores_WITHOUT_SQUIDPY_TT.csv: !!null
+        auc_plot_WITHOUT_SQUIDPY_TT.png: !!null
+        gene_plots_WITHOUT_SQUIDPY_TT.png: !!null
+        stderr.txt: !!null
+        stdout.txt: !!null
+        gp_execution_log.txt: !!null
