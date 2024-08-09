@@ -53,7 +53,7 @@ def main():
   # Boolean value for whether to use top n differentially expressed genes as training genes:
   parser.add_argument("--training_mode", help="choice for whether to use top n differentially expressed" 
                     + "genes shared for training, gmt gene set, or all shared genes", 
-                    choices=["Top N Genes", "GMT File Input", "All Genes"])
+                    choices=["top_n", "gmt_input", "all_genes"])
 
   # Alpha value for training score plot opacity; float value ranging from 0.0 to 1.0, inclusive:
   parser.add_argument("--training_alpha", help="alpha value in training score plots",

@@ -113,20 +113,20 @@ def read_markers(adata_sc, mode, sc_celltype_field, n, gmt_file):
         
     Args:
         adata_sc (AnnData): object of single-cell data
-        mode (str): test-train mode ("Top N Genes," "GMT File Input," or "All Genes")
+        mode (str): test-train mode ("top_n," "gmt_input," or "all_genes")
         sc_celltype_field (str): name of .obs field in sc/snrna data with cell type groupings
-        n (int): for "Top N Genes," the value of N across cell types
-        gmt_file (str): for "GMT File Input," the filename of the one-line .gmt
+        n (int): for "top_n," the value of N across cell types
+        gmt_file (str): for "gmt_input," the filename of the one-line .gmt
 
     Returns:
         List of training genes or None (in the case of "All Genes")
     """
 
-    if (mode == "Top N Genes"):
+    if (mode == "top_n"):
         sc.tl.rank_genes_groups(adata_sc, groupby=sc_celltype_field, use_raw=False)
         markers_df = pd.DataFrame(adata_sc.uns["rank_genes_groups"]["names"]).iloc[0:n, :]
         markers = list(np.unique(markers_df.melt().value.values))
-    elif (mode == "GMT File Input"):
+    elif (mode == "gmt_input"):
         markers = gmt_input(gmt_file)
     else:
        markers = None
