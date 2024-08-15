@@ -1,5 +1,5 @@
 
-name: gpunit_29106
+name: without_squidpy_tt
 # description: created from job 29106
 # ET(ms): 311000# from server:  https://genepattern.ucsd.edu/gp/
 module: Tangram.GPU
