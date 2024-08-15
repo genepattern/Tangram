@@ -1,0 +1,410 @@
+#Tangram.GPU
+#Thu Aug 15 09:36:24 PDT 2024
+JVMLevel=
+LSID=urn\:lsid\:8080.genepattern.genepattern.sdsc.edu\:genepatternmodules\:9\:1
+author=Julia Kononova, Omar Halawa - GenePattern;GenePattern @ Mesirov Lab, UCSD
+categories=single-cell;singlecell;spatial analysis
+commandLine=/expanse/projects/mesirovlab/genepattern/modules/Tangram-GPU-v1/runitprod.bash <single.cell.data.file> <cell.type.metadata.field> <spatial.data.file> <cluster.metadata.field> <histological.image.file> <img.metadata.field> <output.file.tag> <classification.mode> --cross_val_mode\="loo" <training.mode> <num.top.DE.genes> <training.genes.input> <alignment.mode> <alignment.cell.density> <num.epochs> <spot.size> <scale.factor> <spatial.opacity> <training.opacity> <testing.opacity> <training.bin.num> <testing.bin.num> <color.mapping.perc> <debug> <verbose> <genes.to.plot.data.file> --device\="cuda\:0" <deconv.opacity> <deconv.point.size>
+cpuType=any
+description=A method for spatial alignment of single cell transcriptomic data. See <a href\=https\://github.com/genepattern/Tangram/blob/main/README.md>documentation</a> for details on use cases.
+documentationUrl=https\://github.com/genepattern/Tangram/blob/develop/README.md
+fileFormat=.csv;h5ad;png
+job.cpuCount=
+job.docker.image=
+job.memory=
+job.walltime=
+language=any
+name=Tangram.GPU
+os=any
+p10_MODE=IN
+p10_TYPE=FILE
+p10_default_value=
+p10_description=File input for the genes to use in model training.<br>Reads a single-line <a href\="https\://www.genepattern.org/file-formats-guide\#GMT">.gmt file</a>.<br>Only considered if training mode is set to "GMT File Input." 
+p10_fileFormat=.gmt
+p10_flag=--marker_genes_input\=
+p10_name=training.genes.input
+p10_numValues=0..1
+p10_optional=on
+p10_prefix=--marker_genes_input\=
+p10_prefix_when_specified=--marker_genes_input\=
+p10_type=java.io.File
+p10_userSuppliedValuesOK=False
+p10_value=
+p11_MODE=
+p11_TYPE=TEXT
+p11_default_value=cells
+p11_description=Mode of alignment/mapping of either\:<br>\n&nbsp;&nbsp;1. "cells"; mapping at single-cell resolution<br>\n&nbsp;&nbsp;2. "clusters"; averages single cells of the same cluster via the cell type metadata field annotation<br>\n&nbsp;&nbsp;3. "constrained"; <b>for deconvolution</b>, adds a filter term to the loss function<br>\n\nDefault is "cells."
+p11_fileFormat=
+p11_flag=--alignment_mode\=
+p11_name=alignment.mode
+p11_numValues=1..1
+p11_optional=
+p11_prefix=--alignment_mode\=
+p11_prefix_when_specified=--alignment_mode\=
+p11_type=java.lang.String
+p11_userSuppliedValuesOK=False
+p11_value=clusters\=clusters;cells\=cells;constrained\=constrained
+p12_MODE=
+p12_TYPE=TEXT
+p12_default_value=rna_count_based
+p12_description=Alignment cell density. Use "rna count-based" if cell density is proportional to number of RNA molecules and "uniform" if spatial voxels are at single cell resolution.<br>\n\nDefault is RNA count-based.
+p12_fileFormat=
+p12_flag=--density_prior\=
+p12_name=alignment.cell.density
+p12_numValues=1..1
+p12_optional=
+p12_prefix=--density_prior\=
+p12_prefix_when_specified=--density_prior\=
+p12_type=java.lang.String
+p12_userSuppliedValuesOK=False
+p12_value=rna_count_based\=RNA count-based;uniform\=Uniform
+p13_MODE=
+p13_TYPE=Integer
+p13_default_value=1000
+p13_description=Integer value for number of epochs, or iterations through the entire training dataset for the mapping process.<br>Default is 1000.
+p13_fileFormat=
+p13_flag=--num_epochs\=
+p13_name=num.epochs
+p13_numValues=1..1
+p13_optional=
+p13_prefix=--num_epochs\=
+p13_prefix_when_specified=--num_epochs\=
+p13_type=java.lang.Integer
+p13_userSuppliedValuesOK=False
+p13_value=
+p14_MODE=
+p14_TYPE=Integer
+p14_default_value=50
+p14_description=Diameter of gene plot spots.<br>Only considered if no 'spatial' field in spatial input.<br>Default is 50.
+p14_fileFormat=
+p14_flag=--spot_size\=
+p14_name=spot.size
+p14_numValues=1..1
+p14_optional=
+p14_prefix=--spot_size\=
+p14_prefix_when_specified=--spot_size\=
+p14_type=java.lang.Integer
+p14_userSuppliedValuesOK=False
+p14_value=
+p15_MODE=
+p15_TYPE=Floating Point
+p15_default_value=0.1
+p15_description=Gene plot scaling factor to map dots into space.<br>Only considered if no 'spatial' field in spatial input.<br>Default is 0.1.
+p15_fileFormat=
+p15_flag=--scale_factor\=
+p15_name=scale.factor
+p15_numValues=1..1
+p15_optional=
+p15_prefix=--scale_factor\=
+p15_prefix_when_specified=--scale_factor\=
+p15_type=java.lang.Float
+p15_userSuppliedValuesOK=False
+p15_value=
+p16_MODE=
+p16_TYPE=Floating Point
+p16_default_value=0.7
+p16_description=Opacity value for single-cell scanpy spatial plot of original data.<br>Default is 0.7.
+p16_fileFormat=
+p16_flag=--spatial_alpha\=
+p16_name=spatial.opacity
+p16_numValues=1..1
+p16_optional=
+p16_prefix=--spatial_alpha\=
+p16_prefix_when_specified=--spatial_alpha\=
+p16_range=0..1
+p16_type=java.lang.Float
+p16_userSuppliedValuesOK=False
+p16_value=
+p17_MODE=
+p17_TYPE=Floating Point
+p17_default_value=0.5
+p17_description=Opacity value for training score plots.<br>Default is 0.5.
+p17_fileFormat=
+p17_flag=--training_alpha\=
+p17_name=training.opacity
+p17_numValues=1..1
+p17_optional=
+p17_prefix=--training_alpha\=
+p17_prefix_when_specified=--training_alpha\=
+p17_type=java.lang.Float
+p17_userSuppliedValuesOK=False
+p17_value=
+p18_MODE=
+p18_TYPE=Floating Point
+p18_default_value=0.5
+p18_description=Opacity value for testing score plots.<br>Default is 0.5.
+p18_fileFormat=
+p18_flag=--testing_alpha\=
+p18_name=testing.opacity
+p18_numValues=1..1
+p18_optional=
+p18_prefix=--testing_alpha\=
+p18_prefix_when_specified=--testing_alpha\=
+p18_range=0..1
+p18_type=java.lang.Float
+p18_userSuppliedValuesOK=False
+p18_value=
+p19_MODE=
+p19_TYPE=Floating Point
+p19_default_value=0.2
+p19_description=Opacity value for single-cell scanpy spatial plot of post-deconvolution cell plot.<br>Default is 0.2.
+p19_fileFormat=
+p19_flag=--deconv_alpha\=
+p19_name=deconv.opacity
+p19_numValues=0..1
+p19_optional=
+p19_prefix=--deconv_alpha\=
+p19_prefix_when_specified=--deconv_alpha\=
+p19_range=0..1
+p19_type=java.lang.Float
+p19_userSuppliedValuesOK=False
+p19_value=
+p1_MODE=IN
+p1_TYPE=FILE
+p1_default_value=
+p1_description=Single-cell gene expression data file.<br>Takes a .h5ad format file (see <a href\=https\://github.com/scverse/anndata/issues/180\#issuecomment-510451045>here</a>).
+p1_fileFormat=.h5ad
+p1_flag=--sc\=
+p1_name=single.cell.data.file
+p1_numValues=1..1
+p1_optional=
+p1_prefix=--sc\=
+p1_prefix_when_specified=--sc\=
+p1_type=java.io.File
+p1_userSuppliedValuesOK=False
+p1_value=
+p20_MODE=
+p20_TYPE=Floating Point
+p20_default_value=0.4
+p20_description=Point size for single-cell scanpy spatial plot of post-deconvolution cell plot.<br>Default is 0.4.
+p20_fileFormat=
+p20_flag=--deconv_spot_size\=
+p20_name=deconv.point.size
+p20_numValues=0..1
+p20_optional=
+p20_prefix=--deconv_spot_size\=
+p20_prefix_when_specified=--deconv_spot_size\=
+p20_range=0+
+p20_type=java.lang.Float
+p20_userSuppliedValuesOK=False
+p20_value=
+p21_MODE=
+p21_TYPE=Integer
+p21_default_value=20
+p21_description=Number of bins in the training plot histogram.<br>Default is 20.
+p21_fileFormat=
+p21_flag=--train_bin_num\=
+p21_name=training.bin.num
+p21_numValues=1..1
+p21_optional=
+p21_prefix=--train_bin_num\=
+p21_prefix_when_specified=--train_bin_num\=
+p21_range=1+
+p21_type=java.lang.Integer
+p21_userSuppliedValuesOK=False
+p21_value=
+p22_MODE=
+p22_TYPE=Integer
+p22_default_value=20
+p22_description=Number of bins in the testing plot histogram.<br>Default is 20.
+p22_fileFormat=
+p22_flag=--test_bin_num\=
+p22_name=testing.bin.num
+p22_numValues=1..1
+p22_optional=
+p22_prefix=--test_bin_num\=
+p22_prefix_when_specified=--test_bin_num\=
+p22_range=1+
+p22_type=java.lang.Integer
+p22_userSuppliedValuesOK=False
+p22_value=
+p23_MODE=
+p23_TYPE=Floating Point
+p23_default_value=0.02
+p23_description=Percentile float value for setting color map range (a smaller value corresponds to the color map having a greater coverage of values).<br>Default is 0.02.
+p23_fileFormat=
+p23_flag=--perc\=
+p23_name=color.mapping.perc
+p23_numValues=1..1
+p23_optional=
+p23_prefix=--perc\=
+p23_prefix_when_specified=--perc\=
+p23_range=0..1
+p23_type=java.lang.Float
+p23_userSuppliedValuesOK=False
+p23_value=
+p24_MODE=
+p24_TYPE=Integer
+p24_default_value=0
+p24_description=Debugging parameter for developers.
+p24_fileFormat=
+p24_flag=--debug\=
+p24_name=debug
+p24_numValues=1..1
+p24_optional=
+p24_prefix=--debug\=
+p24_prefix_when_specified=--debug\=
+p24_type=java.lang.Integer
+p24_userSuppliedValuesOK=False
+p24_value=
+p25_MODE=
+p25_TYPE=Integer
+p25_default_value=0
+p25_description=Verbosity parameter.
+p25_fileFormat=
+p25_flag=--verbose\=
+p25_name=verbose
+p25_numValues=1..1
+p25_optional=
+p25_prefix=--verbose\=
+p25_prefix_when_specified=--verbose\=
+p25_type=java.lang.Integer
+p25_userSuppliedValuesOK=False
+p25_value=
+p26_MODE=
+p26_TYPE=TEXT
+p26_default_value=<single.cell.data.file_basename>_<spatial.data.file_basename>
+p26_description=Output filename tag to be used as a suffix for this run's output. <br>It is <b>encouraged</b> to change this parameter for every run you intend to do as to differentiate between outputs.<br>\nDefault uses the basenames of both the scRNA/snRNA-seq and spatial input datasets.
+p26_fileFormat=
+p26_flag=--master_tag\=
+p26_name=output.file.tag
+p26_numValues=1..1
+p26_optional=
+p26_prefix=--master_tag\=
+p26_prefix_when_specified=--master_tag\=
+p26_type=java.lang.String
+p26_userSuppliedValuesOK=False
+p26_value=
+p27_MODE=IN
+p27_TYPE=FILE
+p27_default_value=
+p27_description=Input data file for genes to compare measured vs predicted data of. Reads the initial line of a <a href\="https\://www.genepattern.org/file-formats-guide\#GMT">.gmt file</a>.
+p27_fileFormat=.gmt
+p27_flag=--genes_to_plot\=
+p27_name=genes.to.plot.data.file
+p27_numValues=1..1
+p27_optional=
+p27_prefix=--genes_to_plot\=
+p27_prefix_when_specified=--genes_to_plot\=
+p27_type=java.io.File
+p27_userSuppliedValuesOK=False
+p27_value=
+p2_MODE=
+p2_TYPE=TEXT
+p2_default_value=
+p2_description=Field name in the scRNA/snRNA-Seq data containing cell type groupings.
+p2_fileFormat=
+p2_flag=--sc_celltype_field\=
+p2_name=cell.type.metadata.field
+p2_numValues=1..1
+p2_optional=
+p2_prefix=--sc_celltype_field\=
+p2_prefix_when_specified=--sc_celltype_field\=
+p2_type=java.lang.String
+p2_userSuppliedValuesOK=False
+p2_value=
+p3_MODE=IN
+p3_TYPE=FILE
+p3_default_value=
+p3_description=Spatial gene expression data file.<br>Takes a .h5ad format file (see <a href\=https\://github.com/scverse/anndata/issues/180\#issuecomment-510451045>here</a>).
+p3_fileFormat=.h5ad
+p3_flag=--sp\=
+p3_name=spatial.data.file
+p3_numValues=1..1
+p3_optional=
+p3_prefix=--sp\=
+p3_prefix_when_specified=--sp\=
+p3_type=java.io.File
+p3_userSuppliedValuesOK=False
+p3_value=
+p4_MODE=
+p4_TYPE=TEXT
+p4_default_value=
+p4_description=Field name in the spatial data containing cluster groupings. This parameter is optional.
+p4_fileFormat=
+p4_flag=--sp_cluster_field\=
+p4_name=cluster.metadata.field
+p4_numValues=0..1
+p4_optional=on
+p4_prefix=--sp_cluster_field\=
+p4_prefix_when_specified=--sp_cluster_field\=
+p4_type=java.lang.String
+p4_userSuppliedValuesOK=False
+p4_value=
+p5_MODE=IN
+p5_TYPE=FILE
+p5_default_value=
+p5_description=A .zip file of a zarr store containing a histology image (only provide input to run the optional deconvolution step).
+p5_fileFormat=.zip
+p5_flag=--img\=
+p5_name=histological.image.file
+p5_numValues=0..1
+p5_optional=on
+p5_prefix=--img\=
+p5_prefix_when_specified=--img\=
+p5_type=java.io.File
+p5_userSuppliedValuesOK=False
+p5_value=
+p6_MODE=
+p6_TYPE=TEXT
+p6_default_value=
+p6_description=Name of the image layer in the histological image data to process during deconvolution.
+p6_fileFormat=
+p6_flag=--img_layer\=
+p6_name=img.metadata.field
+p6_numValues=0..1
+p6_optional=on
+p6_prefix=--img_layer\=
+p6_prefix_when_specified=--img_layer\=
+p6_type=java.lang.String
+p6_userSuppliedValuesOK=False
+p6_value=
+p7_MODE=
+p7_TYPE=TEXT
+p7_default_value=Test-Train
+p7_description=Mode of classification to carry out Tangram as either one of "Test-Train" or "Leave-One-Out Cross-Validation."
+p7_fileFormat=
+p7_flag=--classification_mode\=
+p7_name=classification.mode
+p7_numValues=1..1
+p7_optional=
+p7_prefix=--classification_mode\=
+p7_prefix_when_specified=--classification_mode\=
+p7_type=java.lang.String
+p7_userSuppliedValuesOK=False
+p7_value=Test-Train\=Test-Train;Cross-Validation\=Leave-One-Out Cross-Validation
+p8_MODE=
+p8_TYPE=TEXT
+p8_default_value=top_n
+p8_description=Mode of training for Tangram algorithm, does one of the following\:<br>\n&nbsp;&nbsp;1. "Top N Genes";  uses top N differentially expressed genes stratified across cell types (set N in next parameter)\n<br>\n&nbsp;&nbsp;2. "GMT File Input"; input a <a href\="https\://www.genepattern.org/file-formats-guide\#GMT">.gmt file</a> where the first line's genes are used to train the model (training genes input)<br>\n&nbsp;&nbsp;3. "All Genes"; all genes shared between the two datasets\n<br>\nDefault is "Top N Genes."
+p8_fileFormat=
+p8_flag=--training_mode\=
+p8_name=training.mode
+p8_numValues=1..1
+p8_optional=
+p8_prefix=--training_mode\=
+p8_prefix_when_specified=--training_mode\=
+p8_type=java.lang.String
+p8_userSuppliedValuesOK=False
+p8_value=top_n\=Top N Genes;gmt_input\=GMT File Input;all_genes\=All Genes
+p9_MODE=
+p9_TYPE=Integer
+p9_default_value=100
+p9_description=Number of top differentially expressed genes, stratified across cell types and shared between the two datasets, to use for training the prediction model.<br>\nOnly considered if training mode is set to "Top N Genes."<br>\nDefault is 100.
+p9_fileFormat=
+p9_flag=--num_training_genes\=
+p9_name=num.top.DE.genes
+p9_numValues=1..1
+p9_optional=
+p9_prefix=--num_training_genes\=
+p9_prefix_when_specified=--num_training_genes\=
+p9_type=java.lang.Integer
+p9_userSuppliedValuesOK=False
+p9_value=
+privacy=public
+quality=development
+src.repo=https\://github.com/genepattern/Tangram
+taskDoc=
+taskType=single-cell
+userid=omarhalawaucsd
+version=Initial working commit
