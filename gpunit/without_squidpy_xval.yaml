@@ -1,5 +1,5 @@
 
-name: gpunit_29227
+name: without_squidpy_xval
 # description: created from job 29227
 # ET(ms): 1105000# from server:  https://genepattern.ucsd.edu/gp/
 module: Tangram.GPU
