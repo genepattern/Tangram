@@ -1,0 +1,1 @@
+You can refer to the Excel sheet provided to see how to replicate the 4 runs done in the Broad Institue Tangram tutorial notebooks. Please unzip the <i>"inputs"</i> directory to use the input datasets and files.

@@ -1,5 +1,5 @@
 #Tangram.GPU
-#Thu Aug 15 09:36:24 PDT 2024
+#Fri Aug 16 07:37:32 PDT 2024
 JVMLevel=
 LSID=urn\:lsid\:8080.genepattern.genepattern.sdsc.edu\:genepatternmodules\:9\:1
 author=Julia Kononova, Omar Halawa - GenePattern;GenePattern @ Mesirov Lab, UCSD
@@ -334,7 +334,7 @@ p4_value=
 p5_MODE=IN
 p5_TYPE=FILE
 p5_default_value=
-p5_description=A .zip file of a zarr store containing a histology image (only provide input to run the optional deconvolution step).
+p5_description=A .zip file of a <a href\="https\://anndata.readthedocs.io/en/latest/generated/anndata.read_zarr.html">zarr store</a> containing a histology image (only provide input to run the optional deconvolution step).
 p5_fileFormat=.zip
 p5_flag=--img\=
 p5_name=histological.image.file
