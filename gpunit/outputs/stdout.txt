@@ -1,0 +1,11 @@
+Job starting at Fri Aug 9 04:45:02 PDT 2024 in /expanse/projects/mesirovlab/genepattern/servers/ucsd.prod/jobResults/29106
+Score: 0.164, KL reg: 0.558
+Score: 0.473, KL reg: 0.011
+Score: 0.499, KL reg: 0.003
+Score: 0.506, KL reg: 0.002
+Score: 0.509, KL reg: 0.002
+Score: 0.511, KL reg: 0.002
+Score: 0.512, KL reg: 0.002
+Score: 0.512, KL reg: 0.002
+Score: 0.512, KL reg: 0.002
+Score: 0.513, KL reg: 0.002

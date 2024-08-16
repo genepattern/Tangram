@@ -1,0 +1,37 @@
+
+# Job: 29106
+# User: omarhalawaucsd
+# Submitted: 2024-08-09 04:44:46.0
+# Started Running: 2024-08-09 04:45:52.0
+# Finished Running: 2024-08-09 04:49:56.0
+# Completed: Fri Aug 09 04:49:56 PDT 2024
+# ET(ms): 310547    server:  https://genepattern.ucsd.edu/gp/
+# Module: Tangram.GPU urn:lsid:8080.genepattern.genepattern.sdsc.edu:genepatternmodules:9:1
+# Parameters: 
+#    single.cell.data.file = mop_sn_tutorial.h5ad   https://genepattern.ucsd.edu/gp/users/omarhalawaucsd/mop_sn_tutorial.h5ad
+#    cell.type.metadata.field = subclass_label
+#    spatial.data.file = slideseq_MOp_1217.h5ad   https://genepattern.ucsd.edu/gp/users/omarhalawaucsd/slideseq_MOp_1217.h5ad
+#    cluster.metadata.field = 
+#    histological.image.file = 
+#    img.metadata.field = 
+#    classification.mode = Test-Train
+#    training.mode = Top N Genes
+#    num.top.DE.genes = 100
+#    training.genes.input = MOp_markers.gmt   https://genepattern.ucsd.edu/gp/users/omarhalawaucsd/MOp_markers.gmt
+#    alignment.mode = cells
+#    alignment.cell.density = RNA count-based
+#    num.epochs = 1000
+#    spot.size = 50
+#    scale.factor = 0.1
+#    spatial.opacity = 0.7
+#    training.opacity = 0.5
+#    testing.opacity = 0.5
+#    deconv.opacity = 0.2
+#    deconv.point.size = 0.4
+#    training.bin.num = 20
+#    testing.bin.num = 20
+#    color.mapping.perc = 0.001
+#    debug = 0
+#    verbose = 0
+#    output.file.tag = WITHOUT_SQUIDPY_TT
+#    genes.to.plot.data.file = genes_to_plot_WITHOUT_SQUIDPY_TT.gmt   https://genepattern.ucsd.edu/gp/users/omarhalawaucsd/genes_to_plot_WITHOUT_SQUIDPY_TT.gmt
