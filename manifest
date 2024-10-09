@@ -1,4 +1,4 @@
-#Tangram.GPU
+#Tangram
 #Fri Aug 16 07:37:32 PDT 2024
 JVMLevel=
 LSID=urn\:lsid\:8080.genepattern.genepattern.sdsc.edu\:genepatternmodules\:9\:1
@@ -14,7 +14,7 @@ job.docker.image=
 job.memory=
 job.walltime=
 language=any
-name=Tangram.GPU
+name=Tangram
 os=any
 p10_MODE=IN
 p10_TYPE=FILE

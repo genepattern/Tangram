@@ -2,7 +2,7 @@
 name: without_squidpy_tt
 # description: created from job 29106
 # ET(ms): 311000# from server:  https://genepattern.ucsd.edu/gp/
-module: Tangram.GPU
+module: Tangram
 # lsid: urn:lsid:8080.genepattern.genepattern.sdsc.edu:genepatternmodules:9:1
 params: 
     "single.cell.data.file": "inputs/mop_sn_tutorial.h5ad"
