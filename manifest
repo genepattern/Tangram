@@ -1,7 +1,7 @@
 #Tangram
 #Wed Oct 09 21:09:22 UTC 2024
 JVMLevel=
-LSID=urn\:lsid\:8080.gpserver.ip-172-31-26-71.ip-172-31-26-71.ec2.internal\:genepatternmodules\:749\:2.0.29
+LSID=urn\:lsid\:genepattern.org:module.analysis:00464
 author=Julia Kononova, Omar Halawa - GenePattern;GenePattern @ Mesirov Lab, UCSD
 categories=single-cell;singlecell;spatial analysis
 commandLine=python /Tangram/main.py <single.cell.data.file> <cell.type.metadata.field> <spatial.data.file> <cluster.metadata.field> <histological.image.file> <img.metadata.field> <output.file.tag> <classification.mode> <cross.val.mode> <training.mode> <num.top.DE.genes> <training.genes.input> <alignment.mode> <alignment.cell.density> <num.epochs> <spot.size> <scale.factor> <spatial.opacity> <training.opacity> <testing.opacity> <training.bin.num> <testing.bin.num> <color.mapping.perc> <debug> <verbose> <genes.to.plot.data.file> --device "cpu" <deconv.opacity> <deconv.point.size>
