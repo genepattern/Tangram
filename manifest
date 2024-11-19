@@ -1,4 +1,4 @@
-#Tangram
+#Tangram.GPU
 #Wed Oct 09 21:09:22 UTC 2024
 JVMLevel=
 LSID=urn\:lsid\:genepattern.org:module.analysis:00464
@@ -14,7 +14,7 @@ job.docker.image=omarhalawa/tangram\:v1.0
 job.memory=
 job.walltime=
 language=any
-name=Tangram
+name=Tangram.GPU
 os=any
 p10_MODE=
 p10_TYPE=Integer

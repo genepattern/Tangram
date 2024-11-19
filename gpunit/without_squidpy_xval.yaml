@@ -17,7 +17,7 @@ params:
     "training.genes.input": "inputs/MOp_markers.gmt"
     "alignment.mode": "clusters"
     "alignment.cell.density": "RNA count-based"
-    "num.epochs": "1000"
+    "num.epochs": "10"
     "spot.size": "50"
     "scale.factor": "0.1"
     "spatial.opacity": "0.7"
